@@ -158,8 +158,6 @@ public class BukkitConnectPlugin extends JavaPlugin implements ConnectHandler, L
 
     @EventHandler
     public void onConnectMessage(ConnectMessageEvent event) {
-        Message message = event.getMessage();
-        if (!message.getChannel().equals("Connect")) return;
-        getLogger().info(String.format("Message from=%s to=%s payload=%s", message.getFrom(), message.getTo(), message.getPayload()));
+        // TODO?
     }
 }

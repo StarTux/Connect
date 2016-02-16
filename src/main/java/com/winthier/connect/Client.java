@@ -17,6 +17,7 @@ public class Client implements Runnable {
     final String displayName;
     DataOutputStream out = null;
     boolean shouldQuit = false;
+    boolean shouldSkipSleep = false;
     LinkedBlockingQueue<String> queue = new LinkedBlockingQueue<>();
     String current = null;
     ConnectionStatus status = ConnectionStatus.INIT;
@@ -35,6 +36,10 @@ public class Client implements Runnable {
 
     void sleep(int seconds) {
         for (int i = 0; i < seconds; ++i) {
+            if (shouldSkipSleep) {
+                shouldSkipSleep = false;
+                return;
+            }
             try {
                 Thread.sleep(1000);
             } catch (InterruptedException ie) {}
@@ -110,6 +115,10 @@ public class Client implements Runnable {
     void quit() {
         shouldQuit = true;
         queue.offer(ConnectionMessages.QUIT.name());
+    }
+
+    void skipSleep() {
+        shouldSkipSleep = true;
     }
 
     void send(String msg) {

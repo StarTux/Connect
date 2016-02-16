@@ -44,6 +44,12 @@ public class ServerConnection implements Runnable {
             }
             status = ConnectionStatus.CONNECTED;
             server.getConnect().getHandler().handleServerConnect(this);
+            // Wake up client
+            Client client = server.getConnect().getClient(name);
+            if (client != null) {
+                client.send(ConnectionMessages.PING.name());
+                client.skipSleep();
+            }
         } catch (IOException ioe) {
             status = ConnectionStatus.DISCONNECTED;
             return;
