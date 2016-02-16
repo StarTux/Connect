@@ -1,0 +1,15 @@
+name: Connect
+description: Connect Bukkit servers
+author: StarTux
+version: 0.1
+main: com.winthier.connect.bukkit.BukkitConnectPlugin
+depend: []
+commands:
+  connect:
+    description: Admin interface
+    permission: connect.connect
+    usage: /<command> ...
+permissions:
+  connect.connect:
+    description: Use the /connect command
+    default: op
