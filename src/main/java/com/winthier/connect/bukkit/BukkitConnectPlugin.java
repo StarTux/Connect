@@ -18,9 +18,9 @@ public class BukkitConnectPlugin extends JavaPlugin implements ConnectHandler, L
 
     @Override
     public void onEnable() {
+        saveDefaultConfig();
         reloadConfig();
         getServer().getPluginManager().registerEvents(this, this);
-        saveDefaultConfig();
         startConnect();
         new BukkitRunnable() {
             @Override public void run() {
@@ -84,7 +84,7 @@ public class BukkitConnectPlugin extends JavaPlugin implements ConnectHandler, L
     void startConnect() {
         stopConnect();
         String serverName = getConfig().getString("ServerName", "test");
-        String path = getConfig().getString("ServerConfig", "servers.txt");
+        String path = getConfig().getString("ServerConfig", "/home/mc/public/config/Connect/servers.txt");
         File serverFile = path.startsWith("/") ? new File(path) : new File(getDataFolder(), path);
         connect = new Connect(serverName, serverFile, this);
         connect.start();

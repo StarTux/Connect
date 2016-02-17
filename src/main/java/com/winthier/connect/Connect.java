@@ -27,11 +27,14 @@ public class Connect {
             BufferedReader in = new BufferedReader(new FileReader(configFile));
             String line = null;
             while (null != (line = in.readLine())) {
+                if (line.startsWith("#")) continue;
+                if (line.isEmpty()) continue;
                 if (password == null) {
                     password = line;
                     continue;
                 }
                 String tokens[] = line.split("\\s+", 3);
+                if (tokens.length != 3) continue;
                 String serverName = tokens[0];
                 int serverPort = Integer.parseInt(tokens[1]);
                 String serverDisplayName = tokens[2];
