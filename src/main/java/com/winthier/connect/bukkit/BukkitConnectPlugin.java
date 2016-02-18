@@ -189,4 +189,44 @@ public class BukkitConnectPlugin extends JavaPlugin implements ConnectHandler, L
             }
         }
     }
+
+    @EventHandler
+    public void onConnectServerConnect(ConnectServerConnectEvent event) {
+        for (Map.Entry<UUID, String> entry: debugPlayers.entrySet()) {
+            Player player = getServer().getPlayer(entry.getKey());
+            if (player != null) {
+                player.sendMessage("Server Connect: " + event.getConnection().getName());
+            }
+        }
+    }
+
+    @EventHandler
+    public void onConnectServerDisconnect(ConnectServerDisconnectEvent event) {
+        for (Map.Entry<UUID, String> entry: debugPlayers.entrySet()) {
+            Player player = getServer().getPlayer(entry.getKey());
+            if (player != null) {
+                player.sendMessage("Server Disconnect: " + event.getConnection().getName());
+            }
+        }
+    }
+
+    @EventHandler
+    public void onConnectClientConnect(ConnectClientConnectEvent event) {
+        for (Map.Entry<UUID, String> entry: debugPlayers.entrySet()) {
+            Player player = getServer().getPlayer(entry.getKey());
+            if (player != null) {
+                player.sendMessage("Client Connect: " + event.getClient().getName());
+            }
+        }
+    }
+
+    @EventHandler
+    public void onConnectClientDisconnect(ConnectClientDisconnectEvent event) {
+        for (Map.Entry<UUID, String> entry: debugPlayers.entrySet()) {
+            Player player = getServer().getPlayer(entry.getKey());
+            if (player != null) {
+                player.sendMessage("Client Disconnect: " + event.getClient().getName());
+            }
+        }
+    }
 }
