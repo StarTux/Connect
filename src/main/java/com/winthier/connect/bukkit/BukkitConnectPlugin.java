@@ -192,40 +192,44 @@ public class BukkitConnectPlugin extends JavaPlugin implements ConnectHandler, L
 
     @EventHandler
     public void onConnectServerConnect(ConnectServerConnectEvent event) {
+        getLogger().info("Server Connect: " + event.getConnection().getName());
         for (Map.Entry<UUID, String> entry: debugPlayers.entrySet()) {
             Player player = getServer().getPlayer(entry.getKey());
             if (player != null) {
-                player.sendMessage("Server Connect: " + event.getConnection().getName());
+                player.sendMessage(ChatColor.translateAlternateColorCodes('&', "[&7C&r] Server Connect: ") + event.getConnection().getName());
             }
         }
     }
 
     @EventHandler
     public void onConnectServerDisconnect(ConnectServerDisconnectEvent event) {
+        getLogger().info("Server Disconnect: " + event.getConnection().getName());
         for (Map.Entry<UUID, String> entry: debugPlayers.entrySet()) {
             Player player = getServer().getPlayer(entry.getKey());
             if (player != null) {
-                player.sendMessage("Server Disconnect: " + event.getConnection().getName());
+                player.sendMessage(ChatColor.translateAlternateColorCodes('&', "[&7C&r] Server Disconnect: ") + event.getConnection().getName());
             }
         }
     }
 
     @EventHandler
     public void onConnectClientConnect(ConnectClientConnectEvent event) {
+        getLogger().info("Client Connect: " + event.getClient().getName());
         for (Map.Entry<UUID, String> entry: debugPlayers.entrySet()) {
             Player player = getServer().getPlayer(entry.getKey());
             if (player != null) {
-                player.sendMessage("Client Connect: " + event.getClient().getName());
+                player.sendMessage(ChatColor.translateAlternateColorCodes('&', "[&7C&r] Client Connect: ") + event.getClient().getName());
             }
         }
     }
 
     @EventHandler
     public void onConnectClientDisconnect(ConnectClientDisconnectEvent event) {
+        getLogger().info("Client Disconnect: " + event.getClient().getName());
         for (Map.Entry<UUID, String> entry: debugPlayers.entrySet()) {
             Player player = getServer().getPlayer(entry.getKey());
             if (player != null) {
-                player.sendMessage("Client Disconnect: " + event.getClient().getName());
+                player.sendMessage(ChatColor.translateAlternateColorCodes('&', "[&7C&r] Client Disconnect: ") + event.getClient().getName());
             }
         }
     }
