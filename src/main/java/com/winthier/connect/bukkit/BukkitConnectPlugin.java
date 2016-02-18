@@ -3,9 +3,14 @@ package com.winthier.connect.bukkit;
 import com.winthier.connect.*;
 import com.winthier.connect.bukkit.event.*;
 import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+import org.bukkit.ChatColor;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -13,6 +18,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 public class BukkitConnectPlugin extends JavaPlugin implements ConnectHandler, Listener {
     Connect connect = null;
+    final Map<UUID, String> debugPlayers = new HashMap<>();
 
     // JavaPlugin
 
@@ -36,6 +42,7 @@ public class BukkitConnectPlugin extends JavaPlugin implements ConnectHandler, L
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        final Player player = sender instanceof Player ? (Player)sender : null;
         String firstArg = args.length > 0 ? args[0] : null;
         if (firstArg == null) {
             return false;
@@ -61,6 +68,17 @@ public class BukkitConnectPlugin extends JavaPlugin implements ConnectHandler, L
             sender.sendMessage("Configuration reloaded");
         } else if ("ping".equals(firstArg) && args.length == 1) {
             connect.broadcastAll("Connect", "Ping");
+        } else if ("debug".equals(firstArg) && player != null) {
+            if (args.length == 1) {
+                debugPlayers.remove(player.getUniqueId());
+                player.sendMessage("Debug mode disabled");
+            } else if (args.length == 2) {
+                String chan = args[1];
+                debugPlayers.put(player.getUniqueId(), chan);
+                player.sendMessage("Debugging Connect channel " + chan);
+            } else {
+                return false;
+            }
         } else {
             return false;
         }
@@ -100,6 +118,7 @@ public class BukkitConnectPlugin extends JavaPlugin implements ConnectHandler, L
 
     @Override
     public void runThread(final Runnable runnable) {
+        if (!isEnabled()) return;
         new BukkitRunnable() {
             @Override public void run() {
                 runnable.run();
@@ -109,6 +128,7 @@ public class BukkitConnectPlugin extends JavaPlugin implements ConnectHandler, L
 
     @Override
     public void handleClientConnect(Client client) {
+        if (!isEnabled()) return;
         new BukkitRunnable() {
             @Override public void run() {
                 getServer().getPluginManager().callEvent(new ConnectClientConnectEvent(client));
@@ -128,6 +148,7 @@ public class BukkitConnectPlugin extends JavaPlugin implements ConnectHandler, L
 
     @Override
     public void handleServerConnect(ServerConnection connection) {
+        if (!isEnabled()) return;
         new BukkitRunnable() {
             @Override public void run() {
                 getServer().getPluginManager().callEvent(new ConnectServerConnectEvent(connection));
@@ -147,6 +168,7 @@ public class BukkitConnectPlugin extends JavaPlugin implements ConnectHandler, L
 
     @Override
     public void handleMessage(Message message) {
+        if (!isEnabled()) return;
         new BukkitRunnable() {
             @Override public void run() {
                 getServer().getPluginManager().callEvent(new ConnectMessageEvent(message));
@@ -158,6 +180,13 @@ public class BukkitConnectPlugin extends JavaPlugin implements ConnectHandler, L
 
     @EventHandler
     public void onConnectMessage(ConnectMessageEvent event) {
-        // TODO?
+        for (Map.Entry<UUID, String> entry: debugPlayers.entrySet()) {
+            if (entry.getValue().equals(event.getMessage().getChannel())) {
+                Player player = getServer().getPlayer(entry.getKey());
+                if (player != null) {
+                    player.sendMessage(String.format(ChatColor.translateAlternateColorCodes('&', "[&7C&r] &8from(&r%s&8) to(&r%s&8) payload(&r%s&8)"), event.getMessage().getFrom(), event.getMessage().getTo(), event.getMessage().getPayload()));
+                }
+            }
+        }
     }
 }
