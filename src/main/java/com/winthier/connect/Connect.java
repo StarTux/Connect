@@ -70,7 +70,7 @@ public class Connect {
     public boolean send(String name, String channel, Object payload) {
         Client client = getClient(name);
         if (client == null) return false;
-        Message message = new Message(channel, name, client.getName(), payload);
+        Message message = new Message(channel, this.name, client.getName(), payload);
         client.send(message.serialize());
         return true;
     }
