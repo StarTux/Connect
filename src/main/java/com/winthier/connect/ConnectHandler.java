@@ -10,4 +10,6 @@ public interface ConnectHandler {
     void handleServerDisconnect(ServerConnection connection);
 
     void handleMessage(Message message);
+
+    void handleRemoteCommand(OnlinePlayer sender, String server, String[] args);
 }

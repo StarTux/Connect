@@ -9,7 +9,14 @@ commands:
     description: Admin interface
     permission: connect.connect
     usage: /<command> ...
+  remote:
+    description: Remote command interface
+    permission: connect.remote
+    usage: /<command> ...
 permissions:
   connect.connect:
     description: Use the /connect command
+    default: op
+  connect.remote:
+    description: Use the /remote command
     default: op

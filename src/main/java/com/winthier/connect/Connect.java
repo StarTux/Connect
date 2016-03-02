@@ -1,10 +1,12 @@
 package com.winthier.connect;
 
+import com.winthier.connect.packet.*;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -95,6 +97,36 @@ public class Connect {
         for (Client client: clients) {
             if (client.getStatus() == ConnectionStatus.CONNECTED) {
                 client.send(ConnectionMessages.PING.name());
+            }
+        }
+    }
+
+    public void broadcastPlayerList(List<OnlinePlayer> players) {
+        for (Client client: clients) {
+            if (client.getStatus() == ConnectionStatus.CONNECTED) {
+                PlayerList playerList = new PlayerList(PlayerList.Type.LIST, players);
+                Message message = new Message("Connect", name, client.getName(), playerList.serialize());
+                client.send(message.serialize());
+            }
+        }
+    }
+
+    public void broadcastPlayerStatus(OnlinePlayer player, boolean online) {
+        for (Client client: clients) {
+            if (client.getStatus() == ConnectionStatus.CONNECTED) {
+                PlayerList playerList = new PlayerList(online ? PlayerList.Type.JOIN : PlayerList.Type.QUIT, Arrays.asList(player));
+                Message message = new Message("Connect", name, client.getName(), playerList.serialize());
+                client.send(message.serialize());
+            }
+        }
+    }
+
+    public void broadcastRemoteCommand(OnlinePlayer sender, String[] args) {
+        for (Client client: clients) {
+            if (client.getStatus() == ConnectionStatus.CONNECTED) {
+                RemoteCommand remoteCommand = new RemoteCommand(sender, args);
+                Message message = new Message("Connect", name, client.getName(), remoteCommand.serialize());
+                client.send(message.serialize());
             }
         }
     }

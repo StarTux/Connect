@@ -2,17 +2,20 @@ package com.winthier.connect.bukkit;
 
 import com.winthier.connect.*;
 import com.winthier.connect.bukkit.event.*;
+import com.winthier.connect.packet.*;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import org.bukkit.ChatColor;
-import org.bukkit.ChatColor;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerKickEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -33,6 +36,8 @@ public class BukkitConnectPlugin extends JavaPlugin implements ConnectHandler, L
                 connect.pingAllConnected();
             }
         }.runTaskTimer(this, 200, 200);
+        getCommand("connect").setExecutor(new BukkitConnectCommand(this));
+        getCommand("remote").setExecutor(new BukkitRemoteCommand(this));
     }
 
     @Override
@@ -40,61 +45,16 @@ public class BukkitConnectPlugin extends JavaPlugin implements ConnectHandler, L
         stopConnect();
     }
 
-    @Override
-    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        final Player player = sender instanceof Player ? (Player)sender : null;
-        String firstArg = args.length > 0 ? args[0] : null;
-        if (firstArg == null) {
-            return false;
-        } else if ("status".equals(firstArg) && args.length == 1) {
-            Server server = connect.getServer();
-            if (server != null) {
-                ConnectionStatus serverStatus = server.getStatus();
-                sender.sendMessage("Server " + server.getName() + " (" + server.getPort() + ") " + color(serverStatus) + serverStatus.name().toLowerCase());
-                for (ServerConnection connection: server.getConnections()) {
-                    ConnectionStatus status = connection.getStatus();
-                    sender.sendMessage("- " + connection.getName() + " (" + connection.getPort() + ") " + color(status) + status.name().toLowerCase());
-                }
-            }
-            sender.sendMessage("Clients");
-            for (Client client: connect.getClients()) {
-                ConnectionStatus status = client.getStatus();
-                sender.sendMessage("- " + client.getName() + " (" + client.getPort() + ") " + color(status) + status.name().toLowerCase());
-            }
-        } else if ("reload".equals(firstArg) && args.length == 1) {
-            reloadConfig();
-            stopConnect();
-            startConnect();
-            sender.sendMessage("Configuration reloaded");
-        } else if ("ping".equals(firstArg) && args.length == 1) {
-            connect.broadcastAll("Connect", "Ping");
-        } else if ("debug".equals(firstArg) && player != null) {
-            if (args.length == 1) {
-                debugPlayers.remove(player.getUniqueId());
-                player.sendMessage("Debug mode disabled");
-            } else if (args.length == 2) {
-                String chan = args[1];
-                debugPlayers.put(player.getUniqueId(), chan);
-                player.sendMessage("Debugging Connect channel " + chan);
-            } else {
-                return false;
-            }
-        } else {
-            return false;
-        }
-        return true;
+    OnlinePlayer onlinePlayer(Player player) {
+        return new OnlinePlayer(player.getUniqueId(), player.getName());
     }
 
-    // Util
-
-    ChatColor color(ConnectionStatus status) {
-        switch (status) {
-        case INIT: return ChatColor.GRAY;
-        case CONNECTED: return ChatColor.GREEN;
-        case DISCONNECTED: return ChatColor.RED;
-        case STOPPED: return ChatColor.YELLOW;
-        default: return ChatColor.WHITE;
+    List<OnlinePlayer> onlinePlayers() {
+        List<OnlinePlayer> result = new ArrayList<>();
+        for (Player player: getServer().getOnlinePlayers()) {
+            result.add(onlinePlayer(player));
         }
+        return result;
     }
 
     // Connect
@@ -176,7 +136,32 @@ public class BukkitConnectPlugin extends JavaPlugin implements ConnectHandler, L
         }.runTask(this);
     }
 
+    @Override
+    public void handleRemoteCommand(OnlinePlayer sender, String server, String[] args) {
+        if (!isEnabled()) return;
+        new BukkitRunnable() {
+            @Override public void run() {
+                getServer().getPluginManager().callEvent(new ConnectRemoteCommandEvent(sender, server, args));
+            }
+        }.runTask(this);
+    }
+    
     // Event
+
+    @EventHandler
+    public void onPlayerJoin(PlayerJoinEvent event) {
+        connect.broadcastPlayerStatus(onlinePlayer(event.getPlayer()), true);
+    }
+
+    @EventHandler
+    public void onPlayerQuit(PlayerQuitEvent event) {
+        connect.broadcastPlayerStatus(onlinePlayer(event.getPlayer()), false);
+    }
+
+    @EventHandler
+    public void onPlayerKick(PlayerKickEvent event) {
+        connect.broadcastPlayerStatus(onlinePlayer(event.getPlayer()), false);
+    }
 
     @EventHandler
     public void onConnectMessage(ConnectMessageEvent event) {
@@ -214,6 +199,7 @@ public class BukkitConnectPlugin extends JavaPlugin implements ConnectHandler, L
 
     @EventHandler
     public void onConnectClientConnect(ConnectClientConnectEvent event) {
+        connect.send(event.getClient().getName(), "Connect", PlayerList.Type.LIST.playerList(onlinePlayers()).serialize());
         getLogger().info("Client Connect: " + event.getClient().getName());
         for (Map.Entry<UUID, String> entry: debugPlayers.entrySet()) {
             Player player = getServer().getPlayer(entry.getKey());
