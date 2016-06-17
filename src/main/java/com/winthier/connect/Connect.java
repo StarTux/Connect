@@ -130,4 +130,27 @@ public class Connect {
             }
         }
     }
+
+    public List<OnlinePlayer> getOnlinePlayers() {
+        List<OnlinePlayer> result = new ArrayList<>();
+        if (server != null) {
+            for (ServerConnection sc: server.connections) {
+                result.addAll(sc.getOnlinePlayers());
+            }
+        }
+        return result;
+    }
+
+    public OnlinePlayer findOnlinePlayer(String name) {
+        if (server != null) {
+            for (ServerConnection sc: server.connections) {
+                for (OnlinePlayer onlinePlayer: sc.getOnlinePlayers()) {
+                    if (onlinePlayer.getName().equals(name)) {
+                        return onlinePlayer;
+                    }
+                }
+            }
+        }
+        return null;
+    }
 }
