@@ -93,6 +93,12 @@ public class Connect {
         broadcast(channel, payload, true);
     }
 
+    public void pingAll() {
+        for (Client client: clients) {
+            client.send(ConnectionMessages.PING.message(client));
+        }
+    }
+
     public void pingAllConnected() {
         for (Client client: clients) {
             if (client.getStatus() == ConnectionStatus.CONNECTED) {
