@@ -33,7 +33,7 @@ public class BukkitConnectPlugin extends JavaPlugin implements ConnectHandler, L
         startConnect();
         new BukkitRunnable() {
             @Override public void run() {
-                connect.pingAllConnected();
+                connect.pingAll();
             }
         }.runTaskTimer(this, 200, 200);
         getCommand("connect").setExecutor(new BukkitConnectCommand(this));
