@@ -62,10 +62,10 @@ public class Client implements Runnable {
 
     void sendLoop(Message message) {
         while (!shouldQuit) {
-            if (message.tooOld()) return;
             DataOutputStream out = getOut();
             if (out == null) continue;
             try {
+                if (message.tooOld()) return;
                 out.writeUTF(message.serialize());
                 out.flush();
             } catch (IOException ioe) {
