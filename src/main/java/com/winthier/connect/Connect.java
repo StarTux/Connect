@@ -53,7 +53,7 @@ public class Connect {
             ioe.printStackTrace();
         }
         for (Client client: clients) {
-            client.send(ConnectionMessages.PING.name());
+            client.send(ConnectionMessages.PING.message(client));
         }
     }
 
@@ -73,7 +73,7 @@ public class Connect {
         Client client = getClient(name);
         if (client == null) return false;
         Message message = new Message(channel, this.name, client.getName(), payload);
-        client.send(message.serialize());
+        client.send(message);
         return true;
     }
 
@@ -81,7 +81,7 @@ public class Connect {
         for (Client client: clients) {
             if (!all && name.equals(client.getName())) continue;
             Message message = new Message(channel, name, client.getName(), payload);
-            client.send(message.serialize());
+            client.send(message);
         }
     }
 
@@ -96,7 +96,7 @@ public class Connect {
     public void pingAllConnected() {
         for (Client client: clients) {
             if (client.getStatus() == ConnectionStatus.CONNECTED) {
-                client.send(ConnectionMessages.PING.name());
+                client.send(ConnectionMessages.PING.message(client));
             }
         }
     }
@@ -106,7 +106,7 @@ public class Connect {
             if (client.getStatus() == ConnectionStatus.CONNECTED) {
                 PlayerList playerList = new PlayerList(PlayerList.Type.LIST, players);
                 Message message = new Message("Connect", name, client.getName(), playerList.serialize());
-                client.send(message.serialize());
+                client.send(message);
             }
         }
     }
@@ -116,7 +116,7 @@ public class Connect {
             if (client.getStatus() == ConnectionStatus.CONNECTED) {
                 PlayerList playerList = new PlayerList(online ? PlayerList.Type.JOIN : PlayerList.Type.QUIT, Arrays.asList(player));
                 Message message = new Message("Connect", name, client.getName(), playerList.serialize());
-                client.send(message.serialize());
+                client.send(message);
             }
         }
     }
@@ -126,7 +126,7 @@ public class Connect {
             if (client.getStatus() == ConnectionStatus.CONNECTED) {
                 RemoteCommand remoteCommand = new RemoteCommand(sender, args);
                 Message message = new Message("Connect", name, client.getName(), remoteCommand.serialize());
-                client.send(message.serialize());
+                client.send(message);
             }
         }
     }

@@ -13,6 +13,7 @@ public class Message {
     final String from;
     final String to;
     final Object payload;
+    transient final long created = System.currentTimeMillis();
 
     String serialize() {
         Map<String, Object> result = new HashMap<>();
@@ -33,5 +34,9 @@ public class Message {
         Object payload = map.get("payload");
         if (from == null || to == null) return null;
         return new Message(channel, from, to, payload);
+    }
+
+    boolean tooOld() {
+        return System.currentTimeMillis() - created > 1000 * 30;
     }
 }

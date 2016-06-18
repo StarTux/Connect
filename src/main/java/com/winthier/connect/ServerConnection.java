@@ -53,7 +53,7 @@ public class ServerConnection implements Runnable {
             // Wake up client
             Client client = server.getConnect().getClient(name);
             if (client != null) {
-                client.send(ConnectionMessages.PING.name());
+                client.send(ConnectionMessages.PING.message(client));
                 client.skipSleep();
             }
         } catch (IOException ioe) {
@@ -102,7 +102,7 @@ public class ServerConnection implements Runnable {
                 // Check client client
                 Client client = server.getConnect().getClient(name);
                 if (client != null) {
-                    client.send(ConnectionMessages.PING.name());
+                    client.send(ConnectionMessages.PING.message(client));
                     client.skipSleep();
                 }
                 return;

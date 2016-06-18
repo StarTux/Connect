@@ -18,7 +18,7 @@ public class Client implements Runnable {
     DataOutputStream out = null;
     boolean shouldQuit = false;
     boolean shouldSkipSleep = false;
-    LinkedBlockingQueue<String> queue = new LinkedBlockingQueue<>();
+    LinkedBlockingQueue<Message> queue = new LinkedBlockingQueue<>();
     String current = null;
     ConnectionStatus status = ConnectionStatus.INIT;
     
@@ -49,7 +49,7 @@ public class Client implements Runnable {
 
     void mainLoop() {
         while (!shouldQuit) {
-            String message = null;
+            Message message = null;
             try {
                 message = queue.poll(10, TimeUnit.SECONDS);
             } catch (InterruptedException ie) {}
@@ -60,12 +60,13 @@ public class Client implements Runnable {
         }
     }
 
-    void sendLoop(String message) {
+    void sendLoop(Message message) {
         while (!shouldQuit) {
+            if (message.tooOld()) return;
             DataOutputStream out = getOut();
             if (out == null) continue;
             try {
-                out.writeUTF(message);
+                out.writeUTF(message.serialize());
                 out.flush();
             } catch (IOException ioe) {
                 status = ConnectionStatus.DISCONNECTED;
@@ -104,7 +105,7 @@ public class Client implements Runnable {
                 if (out == null) {
                     status = ConnectionStatus.DISCONNECTED;
                     sleep(10);
-                    continue;
+                    return null;
                 }
             }
             break;
@@ -114,14 +115,14 @@ public class Client implements Runnable {
 
     void quit() {
         shouldQuit = true;
-        queue.offer(ConnectionMessages.QUIT.name());
+        queue.offer(ConnectionMessages.QUIT.message(this));
     }
 
     void skipSleep() {
         shouldSkipSleep = true;
     }
 
-    void send(String msg) {
+    void send(Message msg) {
         queue.offer(msg);
     }
 }
