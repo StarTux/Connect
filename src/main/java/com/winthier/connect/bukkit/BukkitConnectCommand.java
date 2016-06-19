@@ -18,7 +18,7 @@ public class BukkitConnectCommand implements CommandExecutor {
         switch (status) {
         case INIT: return ChatColor.GRAY;
         case CONNECTED: return ChatColor.GREEN;
-        case DISCONNECTED: return ChatColor.RED;
+        case DISCONNECTED: return ChatColor.DARK_RED;
         case STOPPED: return ChatColor.YELLOW;
         default: return ChatColor.WHITE;
         }
@@ -34,16 +34,16 @@ public class BukkitConnectCommand implements CommandExecutor {
             Server server = plugin.connect.getServer();
             if (server != null) {
                 ConnectionStatus serverStatus = server.getStatus();
-                sender.sendMessage("Server " + server.getName() + " (" + server.getPort() + ") " + color(serverStatus) + serverStatus.name().toLowerCase());
+                sender.sendMessage(ChatColor.GREEN + "Server " + server.getName() + ChatColor.GREEN + " (" + server.getPort() + ") " + color(serverStatus) + serverStatus.name().toLowerCase());
                 for (ServerConnection connection: server.getConnections()) {
                     ConnectionStatus status = connection.getStatus();
-                    sender.sendMessage("- " + connection.getName() + " (" + connection.getPort() + ") " + color(status) + status.name().toLowerCase());
+                    sender.sendMessage(" " + connection.getName() + " (" + connection.getPort() + ") " + color(status) + status.name().toLowerCase());
                 }
             }
-            sender.sendMessage("Clients");
+            sender.sendMessage(ChatColor.GREEN + "Clients");
             for (Client client: plugin.connect.getClients()) {
                 ConnectionStatus status = client.getStatus();
-                sender.sendMessage("- " + client.getName() + " (" + client.getPort() + ") " + color(status) + status.name().toLowerCase());
+                sender.sendMessage(" " + client.getName() + " (" + client.getPort() + ") " + color(status) + status.name().toLowerCase() + ChatColor.DARK_GRAY + " [" + client.getQueueSize() + "]");
             }
         } else if ("reload".equals(firstArg) && args.length == 1) {
             plugin.reloadConfig();
@@ -63,10 +63,13 @@ public class BukkitConnectCommand implements CommandExecutor {
             } else {
                 return false;
             }
-        } else if ("players".equals(firstArg) && args.length == 1) {
+        } else if (("players".equals(firstArg) ||
+                    "who".equals(firstArg) ||
+                    "list".equals(firstArg)) &&
+                   args.length == 1) {
             for (ServerConnection con: plugin.connect.getServer().getConnections()) {
                 List<OnlinePlayer> players = new ArrayList<>(con.getOnlinePlayers());
-                StringBuilder sb = new StringBuilder(con.getName() + "(" + players.size() + ")");
+                StringBuilder sb = new StringBuilder(ChatColor.GREEN + con.getName() + "(" + players.size() + ")" + ChatColor.RESET);
                 for (OnlinePlayer onlinePlayer: players) sb.append(" ").append(onlinePlayer.getName());
                 sender.sendMessage(sb.toString());
             }

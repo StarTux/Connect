@@ -8,7 +8,12 @@ commands:
   connect:
     description: Admin interface
     permission: connect.connect
-    usage: /<command> ...
+    usage: |-
+      /<command> status
+      /<command> reload
+      /<command> ping
+      /<command> debug
+      /<command> players
   remote:
     description: Remote command interface
     permission: connect.remote

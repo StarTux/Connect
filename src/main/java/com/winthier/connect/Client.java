@@ -125,4 +125,8 @@ public class Client implements Runnable {
     void send(Message msg) {
         queue.offer(msg);
     }
+
+    public int getQueueSize() {
+        return queue.size();
+    }
 }
