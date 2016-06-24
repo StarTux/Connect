@@ -3,6 +3,7 @@ package com.winthier.connect;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.Iterator;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import lombok.Getter;
@@ -62,6 +63,7 @@ public class Client implements Runnable {
 
     void sendLoop(Message message) {
         while (!shouldQuit) {
+            cleanQueue();
             DataOutputStream out = getOut();
             if (out == null) continue;
             try {
@@ -76,6 +78,14 @@ public class Client implements Runnable {
                 continue;
             }
             return;
+        }
+    }
+
+    void cleanQueue() {
+        synchronized (queue) {
+            for (Iterator<Message> iter = queue.iterator(); iter.hasNext();) {
+                if (iter.next().tooOld()) iter.remove();
+            }
         }
     }
 
