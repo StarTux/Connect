@@ -9,24 +9,24 @@ import java.util.UUID;
 import lombok.Value;
 
 @Value
-public class PlayerList {
-    public static enum Type {
+public final class PlayerList {
+    public enum Type {
         LIST, JOIN, QUIT;
-        public PlayerList playerList(List<OnlinePlayer> players) {
-            return new PlayerList(this, players);
+        public PlayerList playerList(List<OnlinePlayer> playerList) {
+            return new PlayerList(this, playerList);
         }
     }
 
-    Type type;
-    List<OnlinePlayer> players;
+    private Type type;
+    private List<OnlinePlayer> players;
 
     public Object serialize() {
         Map<String, Object> result = new HashMap<>();
         result.put("packetId", "PlayerList");
         result.put("type", type.name());
-        Map<String, String> players = new HashMap<>();
-        result.put("players", players);
-        for (OnlinePlayer onlinePlayer: this.players) players.put(onlinePlayer.getUuid().toString(), onlinePlayer.getName());
+        Map<String, String> playerMap = new HashMap<>();
+        result.put("players", playerMap);
+        for (OnlinePlayer onlinePlayer: this.players) playerMap.put(onlinePlayer.getUuid().toString(), onlinePlayer.getName());
         return result;
     }
 

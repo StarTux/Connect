@@ -1,6 +1,7 @@
 package com.winthier.connect;
 
-import com.winthier.connect.packet.*;
+import com.winthier.connect.packet.PlayerList;
+import com.winthier.connect.packet.RemoteCommand;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.net.Socket;
@@ -13,16 +14,16 @@ import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
-public class ServerConnection implements Runnable {
-    final Server server;
-    final Socket socket;
-    String name = "Unknown";
-    int port = 0;
-    String password = "x";
-    DataInputStream in = null;
-    boolean shouldQuit = false;
-    ConnectionStatus status = ConnectionStatus.INIT;
-    final List<OnlinePlayer> onlinePlayers = Collections.synchronizedList(new ArrayList<>());
+public final class ServerConnection implements Runnable {
+    private final Server server;
+    private final Socket socket;
+    private String name = "Unknown";
+    private int port = 0;
+    private String password = "x";
+    private DataInputStream in = null;
+    private boolean shouldQuit = false;
+    private ConnectionStatus status = ConnectionStatus.INIT;
+    private final List<OnlinePlayer> onlinePlayers = Collections.synchronizedList(new ArrayList<>());
 
     @Override
     public void run() {
@@ -30,7 +31,7 @@ public class ServerConnection implements Runnable {
         if (in != null) {
             try {
                 in.close();
-            } catch (IOException ioe) {}
+            } catch (IOException ioe) { }
             in = null;
         }
         status = ConnectionStatus.STOPPED;
@@ -65,7 +66,7 @@ public class ServerConnection implements Runnable {
                 String line = in.readUTF();
                 Message message = Message.deserialize(line);
                 if (message == null) {
-                    // TODO
+                    continue;
                 } else {
                     if (("Connect").equals(message.getChannel())) {
                         try {
@@ -84,6 +85,8 @@ public class ServerConnection implements Runnable {
                                 case QUIT:
                                     onlinePlayers.removeAll(playerList.getPlayers());
                                     break;
+                                default:
+                                    break;
                                 }
                             } else if ("RemoteCommand".equals(packetId)) {
                                 RemoteCommand remoteCommand = RemoteCommand.deserialize(map);
@@ -92,7 +95,7 @@ public class ServerConnection implements Runnable {
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
-                    }                        
+                    }
                     server.getConnect().getHandler().handleMessage(message);
                 }
             } catch (IOException ioe) {
@@ -114,6 +117,6 @@ public class ServerConnection implements Runnable {
         shouldQuit = true;
         try {
             socket.shutdownInput();
-        } catch (IOException ioe) {}
+        } catch (IOException ioe) { }
     }
 }

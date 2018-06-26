@@ -1,6 +1,7 @@
 package com.winthier.connect;
 
-import com.winthier.connect.packet.*;
+import com.winthier.connect.packet.PlayerList;
+import com.winthier.connect.packet.RemoteCommand;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -13,15 +14,14 @@ import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
-public class Connect {
-    final String name;
-    final File configFile;
-    final ConnectHandler handler;
-    String password = null;
-
-    Server server = null;
-    final List<Client> clients = new ArrayList<>();
-    @Getter static Connect instance = null;
+public final class Connect {
+    private final String name;
+    private final File configFile;
+    private final ConnectHandler handler;
+    private String password = null;
+    private Server server = null;
+    private final List<Client> clients = new ArrayList<>();
+    @Getter private static Connect instance = null;
 
     public void start() {
         instance = this;
@@ -35,7 +35,7 @@ public class Connect {
                     password = line;
                     continue;
                 }
-                String tokens[] = line.split("\\s+", 3);
+                String[] tokens = line.split("\\s+", 3);
                 if (tokens.length != 3) continue;
                 String serverName = tokens[0];
                 int serverPort = Integer.parseInt(tokens[1]);
@@ -62,15 +62,15 @@ public class Connect {
         for (Client client: clients) client.quit();
     }
 
-    public Client getClient(String name) {
+    public Client getClient(String cname) {
         for (Client client: clients) {
-            if (client.getName().equals(name)) return client;
+            if (client.getName().equals(cname)) return client;
         }
         return null;
     }
 
-    public boolean send(String name, String channel, Object payload) {
-        Client client = getClient(name);
+    public boolean send(String cname, String channel, Object payload) {
+        Client client = getClient(cname);
         if (client == null) return false;
         Message message = new Message(channel, this.name, client.getName(), payload);
         client.send(message);
@@ -140,18 +140,18 @@ public class Connect {
     public List<OnlinePlayer> getOnlinePlayers() {
         List<OnlinePlayer> result = new ArrayList<>();
         if (server != null) {
-            for (ServerConnection sc: server.connections) {
+            for (ServerConnection sc: server.getConnections()) {
                 result.addAll(sc.getOnlinePlayers());
             }
         }
         return result;
     }
 
-    public OnlinePlayer findOnlinePlayer(String name) {
+    public OnlinePlayer findOnlinePlayer(String pname) {
         if (server != null) {
-            for (ServerConnection sc: server.connections) {
+            for (ServerConnection sc: server.getConnections()) {
                 for (OnlinePlayer onlinePlayer: sc.getOnlinePlayers()) {
-                    if (onlinePlayer.getName().equals(name)) {
+                    if (onlinePlayer.getName().equals(pname)) {
                         return onlinePlayer;
                     }
                 }

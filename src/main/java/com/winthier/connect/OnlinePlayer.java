@@ -6,9 +6,9 @@ import java.util.UUID;
 import lombok.Value;
 
 @Value
-public class OnlinePlayer {
-    UUID uuid;
-    String name;
+public final class OnlinePlayer {
+    private UUID uuid;
+    private String name;
 
     public Map<String, String> serialize() {
         Map<String, String> result = new HashMap<>();

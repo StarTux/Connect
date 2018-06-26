@@ -11,25 +11,25 @@ import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
-public class Client implements Runnable {
-    final Connect connect;
-    final String name;
-    final int port;
-    final String displayName;
-    DataOutputStream out = null;
-    boolean shouldQuit = false;
-    boolean shouldSkipSleep = false;
-    LinkedBlockingQueue<Message> queue = new LinkedBlockingQueue<>();
-    String current = null;
-    ConnectionStatus status = ConnectionStatus.INIT;
-    
+public final class Client implements Runnable {
+    private final Connect connect;
+    private final String name;
+    private final int port;
+    private final String displayName;
+    private DataOutputStream out = null;
+    private boolean shouldQuit = false;
+    private boolean shouldSkipSleep = false;
+    private LinkedBlockingQueue<Message> queue = new LinkedBlockingQueue<>();
+    private String current = null;
+    private ConnectionStatus status = ConnectionStatus.INIT;
+
     @Override
     public void run() {
         mainLoop();
         if (out != null) {
             try {
                 out.close();
-            } catch (IOException ioe) {}
+            } catch (IOException ioe) { }
             out = null;
         }
         status = ConnectionStatus.STOPPED;
@@ -43,7 +43,7 @@ public class Client implements Runnable {
             }
             try {
                 Thread.sleep(1000);
-            } catch (InterruptedException ie) {}
+            } catch (InterruptedException ie) { }
             if (shouldQuit) return;
         }
     }
@@ -53,7 +53,7 @@ public class Client implements Runnable {
             Message message = null;
             try {
                 message = queue.poll(10, TimeUnit.SECONDS);
-            } catch (InterruptedException ie) {}
+            } catch (InterruptedException ie) { }
             if (shouldQuit) return;
             if (message != null) {
                 sendLoop(message);
@@ -64,15 +64,19 @@ public class Client implements Runnable {
     void sendLoop(Message message) {
         while (!shouldQuit) {
             cleanQueue();
-            DataOutputStream out = getOut();
-            if (out == null) continue;
+            DataOutputStream dos = getOut();
+            if (dos == null) continue;
             try {
                 if (message.tooOld()) return;
-                out.writeUTF(message.serialize());
-                out.flush();
+                dos.writeUTF(message.serialize());
+                dos.flush();
             } catch (IOException ioe) {
                 status = ConnectionStatus.DISCONNECTED;
-                if (out != null) try { out.close(); } catch (IOException ioe2) {}
+                if (dos != null) {
+                    try {
+                        dos.close();
+                    } catch (IOException ioe2) { }
+                }
                 this.out = null;
                 connect.getHandler().handleClientDisconnect(this);
                 continue;
@@ -109,7 +113,11 @@ public class Client implements Runnable {
                         connect.getHandler().handleClientConnect(this);
                     }
                 } catch (IOException ioe) {
-                    if (out != null) try { out.close(); } catch (IOException ioe2) {}
+                    if (out != null) {
+                        try {
+                            out.close();
+                        } catch (IOException ioe2) { }
+                    }
                     out = null;
                 }
                 if (out == null) {

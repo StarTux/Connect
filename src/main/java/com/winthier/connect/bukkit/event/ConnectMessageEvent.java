@@ -1,6 +1,8 @@
 package com.winthier.connect.bukkit.event;
 
-import com.winthier.connect.*;
+import com.winthier.connect.Client;
+import com.winthier.connect.Connect;
+import com.winthier.connect.Message;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.event.Event;
@@ -9,7 +11,7 @@ import org.bukkit.event.HandlerList;
 
 @Getter
 @RequiredArgsConstructor
-public class ConnectMessageEvent extends Event {
+public final class ConnectMessageEvent extends Event {
     final Message message;
 
     Client getFrom() {
@@ -17,7 +19,7 @@ public class ConnectMessageEvent extends Event {
     }
 
     // Event
-    
+
     private static HandlerList handlers = new HandlerList();
 
     public static HandlerList getHandlerList() {

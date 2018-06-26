@@ -2,21 +2,21 @@ package com.winthier.connect;
 
 public abstract class AbstractConnectHandler implements ConnectHandler {
     @Override
-    public void runThread(Runnable runnable) {}
+    public void runThread(Runnable runnable) { }
 
     @Override
-    public void handleClientConnect(Client client) {}
+    public void handleClientConnect(Client client) { }
     @Override
-    public void handleClientDisconnect(Client client) {}
+    public void handleClientDisconnect(Client client) { }
 
     @Override
-    public void handleServerConnect(ServerConnection connection) {}
+    public void handleServerConnect(ServerConnection connection) { }
     @Override
-    public void handleServerDisconnect(ServerConnection connection) {}
+    public void handleServerDisconnect(ServerConnection connection) { }
 
     @Override
-    public void handleMessage(Message message) {}
+    public void handleMessage(Message message) { }
 
     @Override
-    public void handleRemoteCommand(OnlinePlayer sender, String server, String[] args) {}
+    public void handleRemoteCommand(OnlinePlayer sender, String server, String[] args) { }
 }

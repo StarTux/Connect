@@ -1,18 +1,16 @@
 package com.winthier.connect.packet;
 
 import com.winthier.connect.OnlinePlayer;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import lombok.Value;
 
 @Value
-public class RemoteCommand {
-    OnlinePlayer sender;
-    String[] args;
+public final class RemoteCommand {
+    private OnlinePlayer sender;
+    private String[] args;
 
     public Object serialize() {
         Map<String, Object> result = new HashMap<>();

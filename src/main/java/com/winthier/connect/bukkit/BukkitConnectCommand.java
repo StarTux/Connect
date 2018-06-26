@@ -1,6 +1,10 @@
 package com.winthier.connect.bukkit;
 
-import com.winthier.connect.*;
+import com.winthier.connect.Client;
+import com.winthier.connect.ConnectionStatus;
+import com.winthier.connect.OnlinePlayer;
+import com.winthier.connect.Server;
+import com.winthier.connect.ServerConnection;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -12,7 +16,7 @@ import org.bukkit.entity.Player;
 import org.json.simple.JSONValue;
 
 @RequiredArgsConstructor
-public class BukkitConnectCommand implements CommandExecutor {
+public final class BukkitConnectCommand implements CommandExecutor {
     final BukkitConnectPlugin plugin;
 
     ChatColor color(ConnectionStatus status) {
@@ -32,7 +36,7 @@ public class BukkitConnectCommand implements CommandExecutor {
         if (firstArg == null) {
             return false;
         } else if ("status".equals(firstArg) && args.length == 1) {
-            Server server = plugin.connect.getServer();
+            Server server = plugin.getConnect().getServer();
             if (server != null) {
                 ConnectionStatus serverStatus = server.getStatus();
                 sender.sendMessage(ChatColor.GREEN + "Server " + server.getName() + ChatColor.GREEN + " (" + server.getPort() + ") " + color(serverStatus) + serverStatus.name().toLowerCase());
@@ -42,7 +46,7 @@ public class BukkitConnectCommand implements CommandExecutor {
                 }
             }
             sender.sendMessage(ChatColor.GREEN + "Clients");
-            for (Client client: plugin.connect.getClients()) {
+            for (Client client: plugin.getConnect().getClients()) {
                 ConnectionStatus status = client.getStatus();
                 sender.sendMessage(" " + client.getName() + " (" + client.getPort() + ") " + color(status) + status.name().toLowerCase() + ChatColor.DARK_GRAY + " [" + client.getQueueSize() + "]");
             }
@@ -52,23 +56,23 @@ public class BukkitConnectCommand implements CommandExecutor {
             plugin.startConnect();
             sender.sendMessage("Configuration reloaded");
         } else if ("ping".equals(firstArg) && args.length == 1) {
-            plugin.connect.broadcastAll("Connect", "Ping");
+            plugin.getConnect().broadcastAll("Connect", "Ping");
         } else if ("debug".equals(firstArg) && player != null) {
             if (args.length == 1) {
-                plugin.debugPlayers.remove(player.getUniqueId());
+                plugin.getDebugPlayers().remove(player.getUniqueId());
                 player.sendMessage("Debug mode disabled");
             } else if (args.length == 2) {
                 String chan = args[1];
-                plugin.debugPlayers.put(player.getUniqueId(), chan);
+                plugin.getDebugPlayers().put(player.getUniqueId(), chan);
                 player.sendMessage("Debugging Connect channel " + chan);
             } else {
                 return false;
             }
-        } else if (("players".equals(firstArg) ||
-                    "who".equals(firstArg) ||
-                    "list".equals(firstArg)) &&
-                   args.length == 1) {
-            for (ServerConnection con: plugin.connect.getServer().getConnections()) {
+        } else if (("players".equals(firstArg)
+                    || "who".equals(firstArg)
+                    || "list".equals(firstArg))
+                   && args.length == 1) {
+            for (ServerConnection con: plugin.getConnect().getServer().getConnections()) {
                 List<OnlinePlayer> players = new ArrayList<>(con.getOnlinePlayers());
                 StringBuilder sb = new StringBuilder(ChatColor.GREEN + con.getName() + "(" + players.size() + ")" + ChatColor.RESET);
                 for (OnlinePlayer onlinePlayer: players) sb.append(" ").append(onlinePlayer.getName());
@@ -86,12 +90,12 @@ public class BukkitConnectCommand implements CommandExecutor {
                 payload = null;
             }
             if (name.equals("*")) {
-                for (Client client: plugin.connect.getClients()) {
-                    boolean result = plugin.connect.send(client.getName(), channel, payload);
+                for (Client client: plugin.getConnect().getClients()) {
+                    boolean result = plugin.getConnect().send(client.getName(), channel, payload);
                     sender.sendMessage("Sent to " + client.getName() + ": " + result);
                 }
             } else {
-                boolean result = plugin.connect.send(name, channel, payload);
+                boolean result = plugin.getConnect().send(name, channel, payload);
                 sender.sendMessage("Sent to " + name + ": " + result);
             }
         } else {

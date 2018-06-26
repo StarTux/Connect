@@ -8,12 +8,12 @@ import org.json.simple.JSONValue;
 
 @Getter
 @RequiredArgsConstructor
-public class Message {
+public final class Message {
     final String channel;
     final String from;
     final String to;
     final Object payload;
-    transient final long created = System.currentTimeMillis();
+    final transient long created = System.currentTimeMillis();
 
     String serialize() {
         Map<String, Object> result = new HashMap<>();

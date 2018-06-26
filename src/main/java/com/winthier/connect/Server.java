@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.SocketException;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -14,15 +13,15 @@ import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
-public class Server implements Runnable {
-    final Connect connect;
-    final String name;
-    final int port;
-    final String displayName;
-    ServerSocket serverSocket = null;
-    boolean shouldQuit = false;
-    ConnectionStatus status = ConnectionStatus.INIT;
-    final List<ServerConnection> connections = Collections.synchronizedList(new LinkedList<>());
+public final class Server implements Runnable {
+    private final Connect connect;
+    private final String name;
+    private final int port;
+    private final String displayName;
+    private ServerSocket serverSocket = null;
+    private boolean shouldQuit = false;
+    private ConnectionStatus status = ConnectionStatus.INIT;
+    private final List<ServerConnection> connections = Collections.synchronizedList(new LinkedList<>());
 
     @Override
     public void run() {
@@ -30,7 +29,7 @@ public class Server implements Runnable {
         if (serverSocket != null) {
             try {
                 serverSocket.close();
-            } catch (IOException ioe) {}
+            } catch (IOException ioe) { }
             serverSocket = null;
         }
         for (ServerConnection connection: connections) {
@@ -44,7 +43,7 @@ public class Server implements Runnable {
         for (int i = 0; i < seconds; ++i) {
             try {
                 Thread.sleep(1000);
-            } catch (InterruptedException ie) {}
+            } catch (InterruptedException ie) { }
             if (shouldQuit) return;
         }
     }
@@ -56,7 +55,7 @@ public class Server implements Runnable {
             try {
                 serverSocket = new ServerSocket();
                 serverSocket.setReuseAddress(true);
-                serverSocket.setSoTimeout(1000*10);
+                serverSocket.setSoTimeout(1000 * 10);
                 serverSocket.bind(new InetSocketAddress(port));
                 status = ConnectionStatus.CONNECTED;
             } catch (IOException ioe) {
@@ -73,8 +72,8 @@ public class Server implements Runnable {
                 Socket socket = serverSocket.accept();
                 ServerConnection serverConnection = new ServerConnection(this, socket);
                 connections.add(serverConnection);
-                connect.handler.runThread(serverConnection);
-            } catch (IOException ioe) {}
+                connect.getHandler().runThread(serverConnection);
+            } catch (IOException ioe) { }
             Iterator<ServerConnection> iter = connections.iterator();
             while (iter.hasNext()) {
                 ServerConnection connection = iter.next();

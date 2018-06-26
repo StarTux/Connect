@@ -1,6 +1,6 @@
 package com.winthier.connect.bukkit.event;
 
-import com.winthier.connect.*;
+import com.winthier.connect.Client;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.event.Event;
@@ -9,11 +9,11 @@ import org.bukkit.event.HandlerList;
 
 @Getter
 @RequiredArgsConstructor
-public class ConnectClientDisconnectEvent extends Event {
+public final class ConnectClientDisconnectEvent extends Event {
     final Client client;
 
     // Event
-    
+
     private static HandlerList handlers = new HandlerList();
 
     public static HandlerList getHandlerList() {

@@ -1,14 +1,25 @@
 package com.winthier.connect.bukkit;
 
-import com.winthier.connect.*;
-import com.winthier.connect.bukkit.event.*;
-import com.winthier.connect.packet.*;
+import com.winthier.connect.Client;
+import com.winthier.connect.Connect;
+import com.winthier.connect.ConnectHandler;
+import com.winthier.connect.Message;
+import com.winthier.connect.OnlinePlayer;
+import com.winthier.connect.ServerConnection;
+import com.winthier.connect.bukkit.event.ConnectClientConnectEvent;
+import com.winthier.connect.bukkit.event.ConnectClientDisconnectEvent;
+import com.winthier.connect.bukkit.event.ConnectMessageEvent;
+import com.winthier.connect.bukkit.event.ConnectRemoteCommandEvent;
+import com.winthier.connect.bukkit.event.ConnectServerConnectEvent;
+import com.winthier.connect.bukkit.event.ConnectServerDisconnectEvent;
+import com.winthier.connect.packet.PlayerList;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import lombok.Getter;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -20,9 +31,10 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.json.simple.JSONValue;
 
-public class BukkitConnectPlugin extends JavaPlugin implements ConnectHandler, Listener {
-    Connect connect = null;
-    final Map<UUID, String> debugPlayers = new HashMap<>();
+@Getter
+public final class BukkitConnectPlugin extends JavaPlugin implements ConnectHandler, Listener {
+    private Connect connect = null;
+    private final Map<UUID, String> debugPlayers = new HashMap<>();
 
     // JavaPlugin
 
@@ -96,7 +108,7 @@ public class BukkitConnectPlugin extends JavaPlugin implements ConnectHandler, L
             }
         }.runTask(this);
     }
-    
+
     @Override
     public void handleClientDisconnect(Client client) {
         if (!isEnabled()) return;
@@ -186,6 +198,8 @@ public class BukkitConnectPlugin extends JavaPlugin implements ConnectHandler, L
                     re.printStackTrace();
                 }
             }
+            break;
+        default:
             break;
         }
     }
