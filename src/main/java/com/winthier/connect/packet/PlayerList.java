@@ -19,7 +19,7 @@ public class PlayerList {
 
     Type type;
     List<OnlinePlayer> players;
-    
+
     public Object serialize() {
         Map<String, Object> result = new HashMap<>();
         result.put("packetId", "PlayerList");

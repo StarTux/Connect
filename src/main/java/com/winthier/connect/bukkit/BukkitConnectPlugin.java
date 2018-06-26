@@ -18,6 +18,7 @@ import org.bukkit.event.player.PlayerKickEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.json.simple.JSONValue;
 
 public class BukkitConnectPlugin extends JavaPlugin implements ConnectHandler, Listener {
     Connect connect = null;
@@ -115,7 +116,7 @@ public class BukkitConnectPlugin extends JavaPlugin implements ConnectHandler, L
             }
         }.runTask(this);
     }
-    
+
     @Override
     public void handleServerDisconnect(ServerConnection connection) {
         if (!isEnabled()) return;
@@ -131,9 +132,62 @@ public class BukkitConnectPlugin extends JavaPlugin implements ConnectHandler, L
         if (!isEnabled()) return;
         new BukkitRunnable() {
             @Override public void run() {
-                getServer().getPluginManager().callEvent(new ConnectMessageEvent(message));
+                syncHandleMessage(message);
             }
         }.runTask(this);
+    }
+
+    private void syncHandleMessage(Message message) {
+        // Debug Players
+        for (Map.Entry<UUID, String> entry: debugPlayers.entrySet()) {
+            if (entry.getValue().equals(message.getChannel())) {
+                Player player = getServer().getPlayer(entry.getKey());
+                if (player != null) {
+                    player.sendMessage(String.format(ChatColor.translateAlternateColorCodes('&', "[&7C&r] &8from(&r%s&8) to(&r%s&8) payload(&r%s&8)"), message.getFrom(), message.getTo(), message.getPayload()));
+                }
+            }
+        }
+        handleSpecialMessages(message);
+        // EventHandler
+        getServer().getPluginManager().callEvent(new ConnectMessageEvent(message));
+    }
+
+    private void handleSpecialMessages(Message message) {
+        switch (message.getChannel()) {
+        case "DEBUG":
+            getLogger().info(String.format("Debug message from=%s to=%s payload=%s", message.getFrom(), message.getTo(), message.getPayload()));
+            break;
+        case "PLAYER_MESSAGE":
+            if (message.getPayload() instanceof Map) {
+                @SuppressWarnings("unchecked")
+                final Map<String, Object> map = (Map<String, Object>)message.getPayload();
+                try {
+                    String target = (String)map.get("target");
+                    if (target == null) return;
+                    Player player;
+                    try {
+                        UUID uuid = UUID.fromString(target);
+                        player = getServer().getPlayer(uuid);
+                    } catch (IllegalArgumentException iae) {
+                        player = getServer().getPlayerExact(target);
+                    }
+                    if (player == null) return;
+                    Object chat = (Object)map.get("chat");
+                    if (chat instanceof List) {
+                        @SuppressWarnings("unchecked")
+                        final List<Object> list = (List<Object>)chat;
+                        for (Object o: list) {
+                            getServer().dispatchCommand(getServer().getConsoleSender(), "minecraft:tellraw " + player.getName() + " " + JSONValue.toJSONString(o));
+                        }
+                    } else {
+                        getServer().dispatchCommand(getServer().getConsoleSender(), "minecraft:tellraw " + player.getName() + " " + JSONValue.toJSONString(chat));
+                    }
+                } catch (RuntimeException re) {
+                    re.printStackTrace();
+                }
+            }
+            break;
+        }
     }
 
     @Override
@@ -145,7 +199,7 @@ public class BukkitConnectPlugin extends JavaPlugin implements ConnectHandler, L
             }
         }.runTask(this);
     }
-    
+
     // Event
 
     @EventHandler
@@ -165,14 +219,6 @@ public class BukkitConnectPlugin extends JavaPlugin implements ConnectHandler, L
 
     @EventHandler
     public void onConnectMessage(ConnectMessageEvent event) {
-        for (Map.Entry<UUID, String> entry: debugPlayers.entrySet()) {
-            if (entry.getValue().equals(event.getMessage().getChannel())) {
-                Player player = getServer().getPlayer(entry.getKey());
-                if (player != null) {
-                    player.sendMessage(String.format(ChatColor.translateAlternateColorCodes('&', "[&7C&r] &8from(&r%s&8) to(&r%s&8) payload(&r%s&8)"), event.getMessage().getFrom(), event.getMessage().getTo(), event.getMessage().getPayload()));
-                }
-            }
-        }
     }
 
     @EventHandler

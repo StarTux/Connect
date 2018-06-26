@@ -9,11 +9,12 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.json.simple.JSONValue;
 
 @RequiredArgsConstructor
 public class BukkitConnectCommand implements CommandExecutor {
     final BukkitConnectPlugin plugin;
-    
+
     ChatColor color(ConnectionStatus status) {
         switch (status) {
         case INIT: return ChatColor.GRAY;
@@ -72,6 +73,26 @@ public class BukkitConnectCommand implements CommandExecutor {
                 StringBuilder sb = new StringBuilder(ChatColor.GREEN + con.getName() + "(" + players.size() + ")" + ChatColor.RESET);
                 for (OnlinePlayer onlinePlayer: players) sb.append(" ").append(onlinePlayer.getName());
                 sender.sendMessage(sb.toString());
+            }
+        } else if ("packet".equals(firstArg) && args.length >= 3) {
+            String name = args[1];
+            String channel = args[2];
+            Object payload;
+            if (args.length >= 4) {
+                StringBuilder sb = new StringBuilder(args[3]);
+                for (int i = 4; i < args.length; i += 1) sb.append(" ").append(args[i]);
+                payload = JSONValue.parse(sb.toString());
+            } else {
+                payload = null;
+            }
+            if (name.equals("*")) {
+                for (Client client: plugin.connect.getClients()) {
+                    boolean result = plugin.connect.send(client.getName(), channel, payload);
+                    sender.sendMessage("Sent to " + client.getName() + ": " + result);
+                }
+            } else {
+                boolean result = plugin.connect.send(name, channel, payload);
+                sender.sendMessage("Sent to " + name + ": " + result);
             }
         } else {
             return false;
