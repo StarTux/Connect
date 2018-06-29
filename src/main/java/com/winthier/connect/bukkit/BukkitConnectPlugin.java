@@ -13,7 +13,10 @@ import com.winthier.connect.bukkit.event.ConnectRemoteCommandEvent;
 import com.winthier.connect.bukkit.event.ConnectServerConnectEvent;
 import com.winthier.connect.bukkit.event.ConnectServerDisconnectEvent;
 import com.winthier.connect.packet.PlayerList;
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -51,6 +54,7 @@ public final class BukkitConnectPlugin extends JavaPlugin implements ConnectHand
         }.runTaskTimer(this, 200, 200);
         getCommand("connect").setExecutor(new BukkitConnectCommand(this));
         getCommand("remote").setExecutor(new BukkitRemoteCommand(this));
+        getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
     }
 
     @Override
@@ -185,17 +189,36 @@ public final class BukkitConnectPlugin extends JavaPlugin implements ConnectHand
                     }
                     if (player == null) return;
                     Object chat = (Object)map.get("chat");
-                    if (chat instanceof List) {
-                        @SuppressWarnings("unchecked")
-                        final List<Object> list = (List<Object>)chat;
-                        for (Object o: list) {
-                            getServer().dispatchCommand(getServer().getConsoleSender(), "minecraft:tellraw " + player.getName() + " " + JSONValue.toJSONString(o));
-                        }
-                    } else {
-                        getServer().dispatchCommand(getServer().getConsoleSender(), "minecraft:tellraw " + player.getName() + " " + JSONValue.toJSONString(chat));
-                    }
+                    getServer().dispatchCommand(getServer().getConsoleSender(), "minecraft:tellraw " + player.getName() + " " + JSONValue.toJSONString(chat));
                 } catch (RuntimeException re) {
                     re.printStackTrace();
+                }
+            }
+            break;
+        case "SEND_PLAYER_SERVER":
+            if (message.getPayload() instanceof Map) {
+                @SuppressWarnings("unchecked")
+                final Map<String, String> map = (Map<String, String>)message.getPayload();
+                String playerName = map.get("player");
+                String serverName = map.get("server");
+                if (playerName == null || serverName == null) return;
+                Player player;
+                try {
+                    UUID uuid = UUID.fromString(playerName);
+                    player = getServer().getPlayer(uuid);
+                } catch (IllegalArgumentException iae) {
+                    player = getServer().getPlayerExact(playerName);
+                }
+                if (player != null) {
+                    ByteArrayOutputStream b = new ByteArrayOutputStream();
+                    DataOutputStream out = new DataOutputStream(b);
+                    try {
+                        out.writeUTF("Connect");
+                        out.writeUTF(serverName);
+                        player.sendPluginMessage(this, "BungeeCord", b.toByteArray());
+                    } catch (IOException ex) {
+                        ex.printStackTrace();
+                    }
                 }
             }
             break;

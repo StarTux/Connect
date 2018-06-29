@@ -69,8 +69,8 @@ public final class Connect {
         return null;
     }
 
-    public boolean send(String cname, String channel, Object payload) {
-        Client client = getClient(cname);
+    public boolean send(String serverName, String channel, Object payload) {
+        Client client = getClient(serverName);
         if (client == null) return false;
         Message message = new Message(channel, this.name, client.getName(), payload);
         client.send(message);
