@@ -202,6 +202,7 @@ public final class BukkitConnectPlugin extends JavaPlugin implements ConnectHand
                 String playerName = map.get("player");
                 String serverName = map.get("server");
                 if (playerName == null || serverName == null) return;
+                if (serverName.equals(connect.getName())) return;
                 Player player;
                 try {
                     UUID uuid = UUID.fromString(playerName);
