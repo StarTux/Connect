@@ -53,7 +53,9 @@ public final class BukkitConnectPlugin extends JavaPlugin implements ConnectHand
             }
         }.runTaskTimer(this, 200, 200);
         getCommand("connect").setExecutor(new BukkitConnectCommand(this));
-        getCommand("remote").setExecutor(new BukkitRemoteCommand(this));
+        final BukkitRemoteCommand remoteCommand = new BukkitRemoteCommand(this);
+        getCommand("remote").setExecutor(remoteCommand);
+        getCommand("game").setExecutor(remoteCommand);
         getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
     }
 
