@@ -18,18 +18,17 @@
     </repository>
   </repositories>
   <dependencies>
-    <!-- JUnit -->
+    <!-- Connect-Core -->
     <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>3.8.1</version>
-      <scope>test</scope>
+      <groupId>com.winthier.connect</groupId>
+      <artifactId>connect-core</artifactId>
+      <version>0.1-SNAPSHOT</version>
     </dependency>
     <!-- Spigot-API -->
     <dependency>
       <groupId>org.spigotmc</groupId>
       <artifactId>spigot-api</artifactId>
-      <version>1.10-R0.1-SNAPSHOT</version>
+      <version>1.12.2-R0.1-SNAPSHOT</version>
     </dependency>
     <!-- Lombok -->
     <dependency>
@@ -55,6 +54,35 @@
             <arg>-Xlint:unchecked</arg>
           </compilerArgs>
         </configuration>
+      </plugin>
+      <!-- Shade -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>3.0.0</version>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+              <artifactSet>
+                <includes>
+                  <include>com.winthier.connect:connect-core</include>
+                </includes>
+              </artifactSet>
+              <filters>
+                <filter>
+                  <artifact>com.winthier.connect:connect-core</artifact>
+                  <includes>
+                    <include>com/winthier/connect/**</include>
+                  </includes>
+                </filter>
+              </filters>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>
