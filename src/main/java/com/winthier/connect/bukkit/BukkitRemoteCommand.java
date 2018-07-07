@@ -24,7 +24,7 @@ public class BukkitRemoteCommand implements CommandExecutor {
             String[] newArgs = new String[args.length + 1];
             newArgs[0] = label;
             for (int i = 0; i < args.length; i += 1) newArgs[i + 1] = args[i];
-            plugin.getConnect().broadcastRemoteCommand(new OnlinePlayer(player.getUniqueId(), player.getName()), newArgs);
+            plugin.getConnect().sendRemoteCommand(new OnlinePlayer(player.getUniqueId(), player.getName()), "daemon", newArgs);
             break;
         default:
             plugin.getLogger().warning(getClass().getName() + ": Unexpected label: " + label);
