@@ -261,24 +261,6 @@ public final class BukkitConnectPlugin extends JavaPlugin implements ConnectHand
     }
 
     @EventHandler
-    public void onConnectMessage(ConnectMessageEvent event) {
-        Message message = event.getMessage();
-        if (message.getChannel().equals("BUNGEE_PLAYER_JOIN")) {
-            Map<String, Object> map = (Map<String, Object>) message.getPayload();
-            String name = (String)map.get("name");
-            for (Player player: getServer().getOnlinePlayers()) {
-                player.sendMessage(ChatColor.GRAY + name + " joined the game");
-            }
-        } else if (message.getChannel().equals("BUNGEE_PLAYER_QUIT")) {
-            Map<String, Object> map = (Map<String, Object>) message.getPayload();
-            String name = (String)map.get("name");
-            for (Player player: getServer().getOnlinePlayers()) {
-                player.sendMessage(ChatColor.GRAY + name + " left the game");
-            }
-        }
-    }
-
-    @EventHandler
     public void onConnectServerConnect(ConnectServerConnectEvent event) {
         getLogger().info("Server Connect: " + event.getConnection().getName());
         for (Map.Entry<UUID, String> entry: debugPlayers.entrySet()) {
