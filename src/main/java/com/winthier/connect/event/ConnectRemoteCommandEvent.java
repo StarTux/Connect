@@ -1,16 +1,17 @@
-package com.winthier.connect.bukkit.event;
+package com.winthier.connect.event;
 
-import com.winthier.connect.Client;
+import com.winthier.connect.OnlinePlayer;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 
-
 @Getter
 @RequiredArgsConstructor
-public final class ConnectClientConnectEvent extends Event {
-    final Client client;
+public final class ConnectRemoteCommandEvent extends Event {
+    final OnlinePlayer sender;
+    final String server;
+    final String[] args;
 
     // Event
 

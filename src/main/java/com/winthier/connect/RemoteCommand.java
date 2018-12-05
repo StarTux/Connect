@@ -1,6 +1,5 @@
-package com.winthier.connect.bukkit;
+package com.winthier.connect;
 
-import com.winthier.connect.OnlinePlayer;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -8,8 +7,8 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 @RequiredArgsConstructor
-public class BukkitRemoteCommand implements CommandExecutor {
-    final BukkitConnectPlugin plugin;
+public class RemoteCommand implements CommandExecutor {
+    final ConnectPlugin plugin;
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
@@ -24,7 +23,7 @@ public class BukkitRemoteCommand implements CommandExecutor {
             String[] newArgs = new String[args.length + 1];
             newArgs[0] = label;
             for (int i = 0; i < args.length; i += 1) newArgs[i + 1] = args[i];
-            plugin.getConnect().sendRemoteCommand(new OnlinePlayer(player.getUniqueId(), player.getName()), "daemon", newArgs);
+            plugin.getConnect().sendRemoteCommand("daemon", new OnlinePlayer(player.getUniqueId(), player.getName()), newArgs);
             break;
         default:
             plugin.getLogger().warning(getClass().getName() + ": Unexpected label: " + label);
