@@ -7,7 +7,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 @RequiredArgsConstructor
-public class RemoteCommand implements CommandExecutor {
+public class RemoteCommandExecutor implements CommandExecutor {
     final ConnectPlugin plugin;
 
     @Override

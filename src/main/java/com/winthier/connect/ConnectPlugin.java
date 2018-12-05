@@ -38,9 +38,9 @@ public final class ConnectPlugin extends JavaPlugin implements ConnectHandler, L
         saveDefaultConfig();
         startConnect();
         getCommand("connect").setExecutor(new ConnectCommand(this));
-        final RemoteCommand remoteCommand = new RemoteCommand(this);
-        getCommand("remote").setExecutor(remoteCommand);
-        getCommand("game").setExecutor(remoteCommand);
+        final RemoteCommandExecutor remoteCommandExecutor = new RemoteCommandExecutor(this);
+        getCommand("remote").setExecutor(remoteCommandExecutor);
+        getCommand("game").setExecutor(remoteCommandExecutor);
         getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
         getServer().getPluginManager().registerEvents(this, this);
         this.connect.updatePlayerList(onlinePlayers());
