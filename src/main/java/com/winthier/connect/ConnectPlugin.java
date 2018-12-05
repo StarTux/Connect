@@ -208,14 +208,18 @@ public final class ConnectPlugin extends JavaPlugin implements ConnectHandler, L
 
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
-        final List<OnlinePlayer> list = onlinePlayers();
-        getServer().getScheduler().runTaskAsynchronously(this, () -> this.connect.updatePlayerList(list));
+        getServer().getScheduler().runTask(this, () -> {
+                final List<OnlinePlayer> list = onlinePlayers();
+                getServer().getScheduler().runTaskAsynchronously(this, () -> this.connect.updatePlayerList(list));
+            });
     }
 
     @EventHandler
     public void onPlayerKick(PlayerKickEvent event) {
-        final List<OnlinePlayer> list = onlinePlayers();
-        getServer().getScheduler().runTaskAsynchronously(this, () -> this.connect.updatePlayerList(list));
+        getServer().getScheduler().runTask(this, () -> {
+                final List<OnlinePlayer> list = onlinePlayers();
+                getServer().getScheduler().runTaskAsynchronously(this, () -> this.connect.updatePlayerList(list));
+            });
     }
 
     @EventHandler
