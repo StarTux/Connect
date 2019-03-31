@@ -1,12 +1,19 @@
 package com.winthier.connect;
 
+import cn.nukkit.Player;
+import cn.nukkit.command.PluginCommand;
+import cn.nukkit.event.EventHandler;
+import cn.nukkit.event.Listener;
+import cn.nukkit.event.player.PlayerJoinEvent;
+import cn.nukkit.event.player.PlayerKickEvent;
+import cn.nukkit.event.player.PlayerQuitEvent;
+import cn.nukkit.plugin.PluginBase;
+import cn.nukkit.scheduler.NukkitRunnable;
+import cn.nukkit.utils.TextFormat;
 import com.winthier.connect.event.ConnectMessageEvent;
 import com.winthier.connect.event.ConnectRemoteCommandEvent;
 import com.winthier.connect.event.ConnectRemoteConnectEvent;
 import com.winthier.connect.event.ConnectRemoteDisconnectEvent;
-import java.io.ByteArrayOutputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -14,34 +21,25 @@ import java.util.Map;
 import java.util.UUID;
 import lombok.Getter;
 import lombok.Setter;
-import org.bukkit.ChatColor;
-import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerKickEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
-import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.scheduler.BukkitRunnable;
-import org.json.simple.JSONValue;
+import net.minidev.json.JSONValue;
 
 @Getter
-public final class ConnectPlugin extends JavaPlugin implements ConnectHandler, Listener {
+public final class ConnectPlugin extends PluginBase implements ConnectHandler, Listener {
     private Connect connect = null;
     private final Map<UUID, String> debugPlayers = new HashMap<>();
     @Setter private boolean debug = false;
 
-    // JavaPlugin
+    // PluginBase
 
     @Override
     public void onEnable() {
         saveDefaultConfig();
         startConnect();
-        getCommand("connect").setExecutor(new ConnectCommand(this));
-        final RemoteCommandExecutor remoteCommandExecutor = new RemoteCommandExecutor(this);
-        getCommand("remote").setExecutor(remoteCommandExecutor);
-        getCommand("game").setExecutor(remoteCommandExecutor);
-        getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
+        ((PluginCommand)getCommand("connect")).setExecutor(new ConnectCommand(this));
+        // final RemoteCommandExecutor remoteCommandExecutor = new RemoteCommandExecutor(this);
+        // ((PluginCommand)getCommand("remote")).setExecutor(remoteCommandExecutor);
+        // ((PluginCommand)getCommand("game"))).setExecutor(remoteCommandExecutor);
+        // getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
         getServer().getPluginManager().registerEvents(this, this);
         this.connect.updatePlayerList(onlinePlayers());
     }
@@ -57,7 +55,7 @@ public final class ConnectPlugin extends JavaPlugin implements ConnectHandler, L
 
     List<OnlinePlayer> onlinePlayers() {
         List<OnlinePlayer> result = new ArrayList<>();
-        for (Player player: getServer().getOnlinePlayers()) {
+        for (Player player: getServer().getOnlinePlayers().values()) {
             result.add(onlinePlayer(player));
         }
         return result;
@@ -71,7 +69,7 @@ public final class ConnectPlugin extends JavaPlugin implements ConnectHandler, L
         String serverName = getConfig().getString("ServerName");
         this.debug = getConfig().getBoolean("Debug");
         this.connect = new Connect(serverName, this);
-        getServer().getScheduler().runTaskAsynchronously(this, this.connect);
+        getServer().getScheduler().scheduleTask(this, this.connect, true);
     }
 
     void stopConnect() {
@@ -85,7 +83,7 @@ public final class ConnectPlugin extends JavaPlugin implements ConnectHandler, L
     @Override
     public void handleRemoteConnect(String remote) {
         if (!isEnabled()) return;
-        new BukkitRunnable() {
+        new NukkitRunnable() {
             @Override public void run() {
                 getServer().getPluginManager().callEvent(new ConnectRemoteConnectEvent(remote));
             }
@@ -95,7 +93,7 @@ public final class ConnectPlugin extends JavaPlugin implements ConnectHandler, L
     @Override
     public void handleRemoteDisconnect(String remote) {
         if (!isEnabled()) return;
-        new BukkitRunnable() {
+        new NukkitRunnable() {
             @Override public void run() {
                 getServer().getPluginManager().callEvent(new ConnectRemoteDisconnectEvent(remote));
             }
@@ -106,7 +104,7 @@ public final class ConnectPlugin extends JavaPlugin implements ConnectHandler, L
     public void handleMessage(Message message) {
         if (!isEnabled()) return;
         if (debug) getLogger().info("Message received: " + message.serialize());
-        new BukkitRunnable() {
+        new NukkitRunnable() {
             @Override public void run() {
                 syncHandleMessage(message);
             }
@@ -117,9 +115,9 @@ public final class ConnectPlugin extends JavaPlugin implements ConnectHandler, L
         // Debug Players
         for (Map.Entry<UUID, String> entry: debugPlayers.entrySet()) {
             if (entry.getValue().equals(message.getChannel())) {
-                Player player = getServer().getPlayer(entry.getKey());
+                Player player = getServer().getPlayer(entry.getKey()).orElse(null);
                 if (player != null) {
-                    player.sendMessage(String.format(ChatColor.translateAlternateColorCodes('&', "[&7C&r] &8from(&r%s&8) to(&r%s&8) payload(&r%s&8)"), message.getFrom(), message.getTo(), message.getPayload()));
+                    player.sendMessage(String.format(TextFormat.colorize("[&7C&r] &8from(&r%s&8) to(&r%s&8) payload(&r%s&8)"), message.getFrom(), message.getTo(), message.getPayload()));
                 }
             }
         }
@@ -143,7 +141,7 @@ public final class ConnectPlugin extends JavaPlugin implements ConnectHandler, L
                     Player player;
                     try {
                         UUID uuid = UUID.fromString(target);
-                        player = getServer().getPlayer(uuid);
+                        player = getServer().getPlayer(uuid).orElse(null);
                     } catch (IllegalArgumentException iae) {
                         player = getServer().getPlayerExact(target);
                     }
@@ -156,32 +154,32 @@ public final class ConnectPlugin extends JavaPlugin implements ConnectHandler, L
             }
             break;
         case "SEND_PLAYER_SERVER":
-            if (message.getPayload() instanceof Map) {
-                @SuppressWarnings("unchecked")
-                final Map<String, String> map = (Map<String, String>)message.getPayload();
-                String playerName = map.get("player");
-                String serverName = map.get("server");
-                if (playerName == null || serverName == null) return;
-                if (serverName.equals(this.connect.getServerName())) return;
-                Player player;
-                try {
-                    UUID uuid = UUID.fromString(playerName);
-                    player = getServer().getPlayer(uuid);
-                } catch (IllegalArgumentException iae) {
-                    player = getServer().getPlayerExact(playerName);
-                }
-                if (player != null) {
-                    ByteArrayOutputStream b = new ByteArrayOutputStream();
-                    DataOutputStream out = new DataOutputStream(b);
-                    try {
-                        out.writeUTF("Connect");
-                        out.writeUTF(serverName);
-                        player.sendPluginMessage(this, "BungeeCord", b.toByteArray());
-                    } catch (IOException ex) {
-                        ex.printStackTrace();
-                    }
-                }
-            }
+            // if (message.getPayload() instanceof Map) {
+            //     @SuppressWarnings("unchecked")
+            //     final Map<String, String> map = (Map<String, String>)message.getPayload();
+            //     String playerName = map.get("player");
+            //     String serverName = map.get("server");
+            //     if (playerName == null || serverName == null) return;
+            //     if (serverName.equals(this.connect.getServerName())) return;
+            //     Player player;
+            //     try {
+            //         UUID uuid = UUID.fromString(playerName);
+            //         player = getServer().getPlayer(uuid).orElse(null);
+            //     } catch (IllegalArgumentException iae) {
+            //         player = getServer().getPlayerExact(playerName);
+            //     }
+            //     if (player != null) {
+            //         ByteArrayOutputStream b = new ByteArrayOutputStream();
+            //         DataOutputStream out = new DataOutputStream(b);
+            //         try {
+            //             out.writeUTF("Connect");
+            //             out.writeUTF(serverName);
+            //             player.sendPluginMessage(this, "BungeeCord", b.toByteArray());
+            //         } catch (IOException ex) {
+            //             ex.printStackTrace();
+            //         }
+            //     }
+            // }
             break;
         default:
             break;
@@ -191,7 +189,7 @@ public final class ConnectPlugin extends JavaPlugin implements ConnectHandler, L
     @Override
     public void handleRemoteCommand(OnlinePlayer sender, String server, String[] args) {
         if (!isEnabled()) return;
-        new BukkitRunnable() {
+        new NukkitRunnable() {
             @Override public void run() {
                 getServer().getPluginManager().callEvent(new ConnectRemoteCommandEvent(sender, server, args));
             }
@@ -203,22 +201,22 @@ public final class ConnectPlugin extends JavaPlugin implements ConnectHandler, L
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         final List<OnlinePlayer> list = onlinePlayers();
-        getServer().getScheduler().runTaskAsynchronously(this, () -> this.connect.updatePlayerList(list));
+        getServer().getScheduler().scheduleTask(this, () -> this.connect.updatePlayerList(list), true);
     }
 
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
-        getServer().getScheduler().runTask(this, () -> {
+        getServer().getScheduler().scheduleTask(this, () -> {
                 final List<OnlinePlayer> list = onlinePlayers();
-                getServer().getScheduler().runTaskAsynchronously(this, () -> this.connect.updatePlayerList(list));
+                getServer().getScheduler().scheduleTask(this, () -> this.connect.updatePlayerList(list), true);
             });
     }
 
     @EventHandler
     public void onPlayerKick(PlayerKickEvent event) {
-        getServer().getScheduler().runTask(this, () -> {
+        getServer().getScheduler().scheduleTask(this, () -> {
                 final List<OnlinePlayer> list = onlinePlayers();
-                getServer().getScheduler().runTaskAsynchronously(this, () -> this.connect.updatePlayerList(list));
+                getServer().getScheduler().scheduleTask(this, () -> this.connect.updatePlayerList(list), true);
             });
     }
 
@@ -226,21 +224,21 @@ public final class ConnectPlugin extends JavaPlugin implements ConnectHandler, L
     public void onConnectRemoteConnect(ConnectRemoteConnectEvent event) {
         getLogger().info("Remote Connect: " + event.getRemote());
         for (Map.Entry<UUID, String> entry: debugPlayers.entrySet()) {
-            Player player = getServer().getPlayer(entry.getKey());
+            Player player = getServer().getPlayer(entry.getKey()).orElse(null);
             if (player != null) {
-                player.sendMessage(ChatColor.translateAlternateColorCodes('&', "[&7C&r] Remote Connect: ") + event.getRemote());
+                player.sendMessage(TextFormat.colorize("[&7C&r] Remote Connect: ") + event.getRemote());
             }
         }
     }
 
-    @EventHandler
-    public void onConnectRemoteDisconnect(ConnectRemoteDisconnectEvent event) {
-        getLogger().info("Remote Disconnect: " + event.getRemote());
-        for (Map.Entry<UUID, String> entry: debugPlayers.entrySet()) {
-            Player player = getServer().getPlayer(entry.getKey());
-            if (player != null) {
-                player.sendMessage(ChatColor.translateAlternateColorCodes('&', "[&7C&r] Remote Disconnect: ") + event.getRemote());
-            }
-        }
-    }
+    // @EventHandler
+    // public void onConnectRemoteDisconnect(ConnectRemoteDisconnectEvent event) {
+    //     getLogger().info("Remote Disconnect: " + event.getRemote());
+    //     for (Map.Entry<UUID, String> entry: debugPlayers.entrySet()) {
+    //         Player player = getServer().getPlayer(entry.getKey()).orElse(null);
+    //         if (player != null) {
+    //             player.sendMessage(TextFormat.colorize("[&7C&r] Remote Disconnect: ") + event.getRemote());
+    //         }
+    //     }
+    // }
 }

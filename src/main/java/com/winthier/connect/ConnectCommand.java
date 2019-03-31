@@ -1,15 +1,15 @@
 package com.winthier.connect;
 
+import cn.nukkit.Player;
+import cn.nukkit.command.Command;
+import cn.nukkit.command.CommandExecutor;
+import cn.nukkit.command.CommandSender;
+import cn.nukkit.utils.TextFormat;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
-import org.bukkit.ChatColor;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
-import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
-import org.json.simple.JSONValue;
+import net.minidev.json.JSONValue;
 
 @RequiredArgsConstructor
 public final class ConnectCommand implements CommandExecutor {
@@ -27,7 +27,7 @@ public final class ConnectCommand implements CommandExecutor {
         case "status":
         case "info": {
             if (args.length != 0) return false;
-            sender.sendMessage(ChatColor.GREEN + "Server: " + this.plugin.getConnect().getServerName());
+            sender.sendMessage(TextFormat.GREEN + "Server: " + this.plugin.getConnect().getServerName());
             for (String remote: this.plugin.getConnect().listServers()) {
                 sender.sendMessage("Remote: " + remote);
             }

@@ -1,8 +1,8 @@
 name: Connect
-description: Connect Bukkit servers
+description: Connect Nukkit and Bukkit servers
 author: StarTux
-version: 0.1
-api-version: 1.13
+version: "0.1"
+api: ["1.0.8"]
 website: https://cavetale.com
 main: com.winthier.connect.ConnectPlugin
 depend: [Redis]
@@ -11,17 +11,17 @@ commands:
     description: Admin interface
     permission: connect.connect
     usage: |-
-      /<command> status
-      /<command> reload
-      /<command> ping
-      /<command> debug
-      /<command> players
-      /<command> packet <to> <chan> <payload...>
-  remote:
-    aliases: [game, games]
-    description: Remote command interface
-    permission: connect.remote
-    usage: /<command> ...
+      /connect status
+      /connect reload
+      /connect ping
+      /connect debug
+      /connect players
+      /connect packet <to> <chan> <payload...>
+#  remote:
+#    aliases: [game, games]
+#    description: Remote command interface
+#    permission: connect.remote
+#    usage: /remote ...
 permissions:
   connect.connect:
     description: Use the /connect command

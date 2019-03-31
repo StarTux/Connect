@@ -1,10 +1,9 @@
 package com.winthier.connect.event;
 
+import cn.nukkit.event.Event;
+import cn.nukkit.event.HandlerList;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.bukkit.event.Event;
-import org.bukkit.event.HandlerList;
-
 
 @Getter @RequiredArgsConstructor
 public final class ConnectRemoteConnectEvent extends Event {
@@ -12,9 +11,9 @@ public final class ConnectRemoteConnectEvent extends Event {
 
     // Event
 
-    @Getter private static HandlerList handlerList = new HandlerList();
+    private static HandlerList handlerList = new HandlerList();
 
-    @Override public HandlerList getHandlers() {
+    public static HandlerList getHandlers() {
         return handlerList;
     }
 }

@@ -1,13 +1,12 @@
 package com.winthier.connect.event;
 
+import cn.nukkit.event.Event;
+import cn.nukkit.event.HandlerList;
 import com.winthier.connect.OnlinePlayer;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.bukkit.event.Event;
-import org.bukkit.event.HandlerList;
 
-@Getter
-@RequiredArgsConstructor
+@Getter @RequiredArgsConstructor
 public final class ConnectRemoteCommandEvent extends Event {
     final OnlinePlayer sender;
     final String server;
@@ -17,12 +16,7 @@ public final class ConnectRemoteCommandEvent extends Event {
 
     private static HandlerList handlers = new HandlerList();
 
-    public static HandlerList getHandlerList() {
-        return handlers;
-    }
-
-    @Override
-    public HandlerList getHandlers() {
+    public static HandlerList getHandlers() {
         return handlers;
     }
 }

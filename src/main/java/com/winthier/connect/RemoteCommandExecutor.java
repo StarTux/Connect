@@ -1,10 +1,10 @@
 package com.winthier.connect;
 
+import cn.nukkit.Player;
+import cn.nukkit.command.Command;
+import cn.nukkit.command.CommandExecutor;
+import cn.nukkit.command.CommandSender;
 import lombok.RequiredArgsConstructor;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
-import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
 
 @RequiredArgsConstructor
 public class RemoteCommandExecutor implements CommandExecutor {
