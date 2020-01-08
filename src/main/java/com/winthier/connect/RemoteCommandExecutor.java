@@ -19,12 +19,6 @@ public class RemoteCommandExecutor implements CommandExecutor {
             if (args.length == 0) return false;
             plugin.getConnect().broadcastRemoteCommand(new OnlinePlayer(player.getUniqueId(), player.getName()), args);
             break;
-        case "game": case "games":
-            String[] newArgs = new String[args.length + 1];
-            newArgs[0] = label;
-            for (int i = 0; i < args.length; i += 1) newArgs[i + 1] = args[i];
-            plugin.getConnect().sendRemoteCommand("daemon", new OnlinePlayer(player.getUniqueId(), player.getName()), newArgs);
-            break;
         default:
             plugin.getLogger().warning(getClass().getName() + ": Unexpected label: " + label);
             break;

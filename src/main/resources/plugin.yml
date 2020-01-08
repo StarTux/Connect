@@ -18,7 +18,7 @@ commands:
       /<command> players
       /<command> packet <to> <chan> <payload...>
   remote:
-    aliases: [game, games]
+    aliases: []
     description: Remote command interface
     permission: connect.remote
     usage: /<command> ...
