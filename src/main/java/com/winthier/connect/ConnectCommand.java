@@ -23,42 +23,42 @@ public final class ConnectCommand implements CommandExecutor {
     }
 
     private boolean onCommand(CommandSender sender, String cmd, String[] args) {
-        final Player player = sender instanceof Player ? (Player)sender : null;
+        final Player player = sender instanceof Player ? (Player) sender : null;
         switch (cmd) {
         case "status":
         case "info": {
             if (args.length != 0) return false;
-            sender.sendMessage(ChatColor.GREEN + "Server: " + this.plugin.getConnect().getServerName());
-            for (String remote: this.plugin.getConnect().listServers()) {
+            sender.sendMessage(ChatColor.GREEN + "Server: " + plugin.getConnect().getServerName());
+            for (String remote: plugin.getConnect().listServers()) {
                 sender.sendMessage("Remote: " + remote);
             }
             return true;
         }
         case "reload": {
             if (args.length != 0) return false;
-            this.plugin.reloadConfig();
-            this.plugin.stopConnect();
-            this.plugin.startConnect();
+            plugin.reloadConfig();
+            plugin.stopConnect();
+            plugin.startConnect();
             sender.sendMessage("Configuration reloaded");
             return true;
         }
         case "ping": {
             if (args.length != 0) return false;
-            this.plugin.getConnect().ping();
+            plugin.getConnect().ping();
             return true;
         }
         case "debug": {
             if (player == null) {
-                this.plugin.setDebug(!this.plugin.isDebug());
-                this.plugin.getLogger().info("Debug mode: " + this.plugin.isDebug());
+                plugin.setDebug(!plugin.isDebug());
+                plugin.getLogger().info("Debug mode: " + plugin.isDebug());
                 return true;
             }
             if (args.length == 1) {
-                this.plugin.getDebugPlayers().remove(player.getUniqueId());
+                plugin.getDebugPlayers().remove(player.getUniqueId());
                 player.sendMessage("Debug mode disabled");
             } else if (args.length == 2) {
                 String chan = args[1];
-                this.plugin.getDebugPlayers().put(player.getUniqueId(), chan);
+                plugin.getDebugPlayers().put(player.getUniqueId(), chan);
                 player.sendMessage("Debugging Connect channel " + chan);
             } else {
                 return false;
@@ -69,9 +69,15 @@ public final class ConnectCommand implements CommandExecutor {
         case "who":
         case "list": {
             if (args.length != 0) return false;
-            for (Map.Entry<String, List<OnlinePlayer>> serverEntry: this.plugin.getConnect().listPlayers().entrySet()) {
-                StringBuilder sb = new StringBuilder(serverEntry.getKey() + "(" + serverEntry.getValue().size() + ")");
-                for (OnlinePlayer onlinePlayer: serverEntry.getValue()) sb.append(" ").append(onlinePlayer.getName());
+            for (Map.Entry<String, List<OnlinePlayer>> serverEntry
+                     : plugin.getConnect().listPlayers().entrySet()) {
+                StringBuilder sb = new StringBuilder(serverEntry.getKey())
+                    .append("(")
+                    .append(serverEntry.getValue().size())
+                    .append(")");
+                for (OnlinePlayer onlinePlayer: serverEntry.getValue()) {
+                    sb.append(" ").append(onlinePlayer.getName());
+                }
                 sender.sendMessage(sb.toString());
             }
             return true;

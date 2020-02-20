@@ -43,7 +43,7 @@ public final class ConnectPlugin extends JavaPlugin implements ConnectHandler, L
         getCommand("remote").setExecutor(remoteCommandExecutor);
         getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
         getServer().getPluginManager().registerEvents(this, this);
-        this.connect.updatePlayerList(onlinePlayers());
+        connect.updatePlayerList(onlinePlayers());
     }
 
     @Override
@@ -69,15 +69,15 @@ public final class ConnectPlugin extends JavaPlugin implements ConnectHandler, L
         stopConnect();
         reloadConfig();
         String serverName = getConfig().getString("ServerName");
-        this.debug = getConfig().getBoolean("Debug");
-        this.connect = new Connect(serverName, this);
-        getServer().getScheduler().runTaskAsynchronously(this, this.connect);
+        debug = getConfig().getBoolean("Debug");
+        connect = new Connect(serverName, this);
+        getServer().getScheduler().runTaskAsynchronously(this, connect);
     }
 
     void stopConnect() {
-        if (this.connect == null) return;
-        this.connect.stop();
-        this.connect = null;
+        if (connect == null) return;
+        connect.stop();
+        connect = null;
     }
 
     // ConnectHandler
@@ -119,7 +119,9 @@ public final class ConnectPlugin extends JavaPlugin implements ConnectHandler, L
             if (entry.getValue().equals(message.getChannel())) {
                 Player player = getServer().getPlayer(entry.getKey());
                 if (player != null) {
-                    player.sendMessage(String.format(ChatColor.translateAlternateColorCodes('&', "[&7C&r] &8from(&r%s&8) to(&r%s&8) payload(&r%s&8)"), message.getFrom(), message.getTo(), message.getPayload()));
+                    String msg = format("[&7C&r] &8from(&r%s&8) to(&r%s&8) payload(&r%s&8)",
+                                        message.getFrom(), message.getTo(), message.getPayload());
+                    player.sendMessage(msg);
                 }
             }
         }
@@ -131,14 +133,16 @@ public final class ConnectPlugin extends JavaPlugin implements ConnectHandler, L
     private void handleSpecialMessages(Message message) {
         switch (message.getChannel()) {
         case "DEBUG":
-            getLogger().info(String.format("Debug message from=%s to=%s payload=%s", message.getFrom(), message.getTo(), message.getPayload()));
+            getLogger().info(String.format("Debug message from=%s to=%s payload=%s",
+                                           message.getFrom(), message.getTo(),
+                                           message.getPayload()));
             break;
         case "PLAYER_MESSAGE":
             if (message.getPayload() instanceof Map) {
                 @SuppressWarnings("unchecked")
-                final Map<String, Object> map = (Map<String, Object>)message.getPayload();
+                final Map<String, Object> map = (Map<String, Object>) message.getPayload();
                 try {
-                    String target = (String)map.get("target");
+                    String target = (String) map.get("target");
                     if (target == null) return;
                     Player player;
                     try {
@@ -148,8 +152,10 @@ public final class ConnectPlugin extends JavaPlugin implements ConnectHandler, L
                         player = getServer().getPlayerExact(target);
                     }
                     if (player == null) return;
-                    Object chat = (Object)map.get("chat");
-                    getServer().dispatchCommand(getServer().getConsoleSender(), "minecraft:tellraw " + player.getName() + " " + gson.toJson(chat));
+                    Object chat = (Object) map.get("chat");
+                    String cmd = "minecraft:tellraw "
+                        + player.getName() + " " + gson.toJson(chat);
+                    getServer().dispatchCommand(getServer().getConsoleSender(), cmd);
                 } catch (RuntimeException re) {
                     re.printStackTrace();
                 }
@@ -158,11 +164,11 @@ public final class ConnectPlugin extends JavaPlugin implements ConnectHandler, L
         case "SEND_PLAYER_SERVER":
             if (message.getPayload() instanceof Map) {
                 @SuppressWarnings("unchecked")
-                final Map<String, String> map = (Map<String, String>)message.getPayload();
+                final Map<String, String> map = (Map<String, String>) message.getPayload();
                 String playerName = map.get("player");
                 String serverName = map.get("server");
                 if (playerName == null || serverName == null) return;
-                if (serverName.equals(this.connect.getServerName())) return;
+                if (serverName.equals(connect.getServerName())) return;
                 Player player;
                 try {
                     UUID uuid = UUID.fromString(playerName);
@@ -193,7 +199,8 @@ public final class ConnectPlugin extends JavaPlugin implements ConnectHandler, L
         if (!isEnabled()) return;
         new BukkitRunnable() {
             @Override public void run() {
-                getServer().getPluginManager().callEvent(new ConnectRemoteCommandEvent(sender, server, args));
+                ConnectRemoteCommandEvent ev = new ConnectRemoteCommandEvent(sender, server, args);
+                getServer().getPluginManager().callEvent(ev);
             }
         }.runTask(this);
     }
@@ -203,14 +210,18 @@ public final class ConnectPlugin extends JavaPlugin implements ConnectHandler, L
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         final List<OnlinePlayer> list = onlinePlayers();
-        getServer().getScheduler().runTaskAsynchronously(this, () -> this.connect.updatePlayerList(list));
+        getServer().getScheduler().runTaskAsynchronously(this, () -> {
+                connect.updatePlayerList(list);
+            });
     }
 
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
         getServer().getScheduler().runTask(this, () -> {
                 final List<OnlinePlayer> list = onlinePlayers();
-                getServer().getScheduler().runTaskAsynchronously(this, () -> this.connect.updatePlayerList(list));
+                getServer().getScheduler().runTaskAsynchronously(this, () -> {
+                        connect.updatePlayerList(list);
+                    });
             });
     }
 
@@ -218,7 +229,9 @@ public final class ConnectPlugin extends JavaPlugin implements ConnectHandler, L
     public void onPlayerKick(PlayerKickEvent event) {
         getServer().getScheduler().runTask(this, () -> {
                 final List<OnlinePlayer> list = onlinePlayers();
-                getServer().getScheduler().runTaskAsynchronously(this, () -> this.connect.updatePlayerList(list));
+                getServer().getScheduler().runTaskAsynchronously(this, () -> {
+                        connect.updatePlayerList(list);
+                    });
             });
     }
 
@@ -228,7 +241,7 @@ public final class ConnectPlugin extends JavaPlugin implements ConnectHandler, L
         for (Map.Entry<UUID, String> entry: debugPlayers.entrySet()) {
             Player player = getServer().getPlayer(entry.getKey());
             if (player != null) {
-                player.sendMessage(ChatColor.translateAlternateColorCodes('&', "[&7C&r] Remote Connect: ") + event.getRemote());
+                player.sendMessage(colorize("[&7C&r] Remote Connect: ") + event.getRemote());
             }
         }
     }
@@ -239,8 +252,19 @@ public final class ConnectPlugin extends JavaPlugin implements ConnectHandler, L
         for (Map.Entry<UUID, String> entry: debugPlayers.entrySet()) {
             Player player = getServer().getPlayer(entry.getKey());
             if (player != null) {
-                player.sendMessage(ChatColor.translateAlternateColorCodes('&', "[&7C&r] Remote Disconnect: ") + event.getRemote());
+                player.sendMessage(colorize("[&7C&r] Remote Disconnect: ") + event.getRemote());
             }
         }
+    }
+
+    // Utility
+
+    private static String colorize(String str) {
+        return ChatColor.translateAlternateColorCodes('&', str);
+    }
+
+    private static String format(String str, Object... args) {
+        str = ChatColor.translateAlternateColorCodes('&', str);
+        return String.format(str, args);
     }
 }
