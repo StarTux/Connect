@@ -1,5 +1,6 @@
 package com.winthier.connect;
 
+import com.google.gson.Gson;
 import com.winthier.connect.event.ConnectMessageEvent;
 import com.winthier.connect.event.ConnectRemoteCommandEvent;
 import com.winthier.connect.event.ConnectRemoteConnectEvent;
@@ -23,13 +24,13 @@ import org.bukkit.event.player.PlayerKickEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
-import org.json.simple.JSONValue;
 
 @Getter
 public final class ConnectPlugin extends JavaPlugin implements ConnectHandler, Listener {
     private Connect connect = null;
     private final Map<UUID, String> debugPlayers = new HashMap<>();
     @Setter private boolean debug = false;
+    private Gson gson = new Gson();
 
     // JavaPlugin
 
@@ -148,7 +149,7 @@ public final class ConnectPlugin extends JavaPlugin implements ConnectHandler, L
                     }
                     if (player == null) return;
                     Object chat = (Object)map.get("chat");
-                    getServer().dispatchCommand(getServer().getConsoleSender(), "minecraft:tellraw " + player.getName() + " " + JSONValue.toJSONString(chat));
+                    getServer().dispatchCommand(getServer().getConsoleSender(), "minecraft:tellraw " + player.getName() + " " + gson.toJson(chat));
                 } catch (RuntimeException re) {
                     re.printStackTrace();
                 }

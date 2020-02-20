@@ -1,5 +1,6 @@
 package com.winthier.connect;
 
+import com.google.gson.Gson;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -9,11 +10,11 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.json.simple.JSONValue;
 
 @RequiredArgsConstructor
 public final class ConnectCommand implements CommandExecutor {
     final ConnectPlugin plugin;
+    Gson gson = new Gson();
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
@@ -83,7 +84,7 @@ public final class ConnectCommand implements CommandExecutor {
             if (args.length >= 3) {
                 StringBuilder sb = new StringBuilder(args[2]);
                 for (int i = 3; i < args.length; i += 1) sb.append(" ").append(args[i]);
-                payload = JSONValue.parse(sb.toString());
+                payload = gson.fromJson(sb.toString(), Object.class);
             } else {
                 payload = null;
             }
