@@ -1,12 +1,18 @@
+main: com.winthier.connect.ConnectPlugin
 name: Connect
 description: Connect Bukkit servers
-author: StarTux
+
 version: 0.1
-api-version: 1.13
+api-version: 1.17
+
+author: StarTux
 website: https://cavetale.com
-main: com.winthier.connect.ConnectPlugin
+
 depend: []
+softdepend: []
+
 commands:
+
   connect:
     description: Admin interface
     permission: connect.connect
@@ -17,15 +23,19 @@ commands:
       /<command> debug
       /<command> players
       /<command> packet <to> <chan> <payload...>
+
   remote:
     aliases: []
     description: Remote command interface
     permission: connect.remote
     usage: /<command> ...
+
 permissions:
+
   connect.connect:
     description: Use the /connect command
     default: op
+
   connect.remote:
     description: Use the /remote command
     default: op
