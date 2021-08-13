@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.UUID;
 import lombok.Getter;
 import lombok.Setter;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -38,7 +39,7 @@ public final class ConnectPlugin extends JavaPlugin implements ConnectHandler, L
     public void onEnable() {
         saveDefaultConfig();
         startConnect();
-        getCommand("connect").setExecutor(new ConnectCommand(this));
+        new ConnectCommand(this).enable();
         final RemoteCommandExecutor remoteCommandExecutor = new RemoteCommandExecutor(this);
         getCommand("remote").setExecutor(remoteCommandExecutor);
         getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
@@ -126,7 +127,6 @@ public final class ConnectPlugin extends JavaPlugin implements ConnectHandler, L
             }
         }
         handleSpecialMessages(message);
-        // EventHandler
         getServer().getPluginManager().callEvent(new ConnectMessageEvent(message));
     }
 
@@ -208,7 +208,7 @@ public final class ConnectPlugin extends JavaPlugin implements ConnectHandler, L
     // Event
 
     @EventHandler
-    public void onPlayerJoin(PlayerJoinEvent event) {
+    void onPlayerJoin(PlayerJoinEvent event) {
         final List<OnlinePlayer> list = onlinePlayers();
         getServer().getScheduler().runTaskAsynchronously(this, () -> {
                 connect.updatePlayerList(list);
@@ -216,7 +216,7 @@ public final class ConnectPlugin extends JavaPlugin implements ConnectHandler, L
     }
 
     @EventHandler
-    public void onPlayerQuit(PlayerQuitEvent event) {
+    void onPlayerQuit(PlayerQuitEvent event) {
         getServer().getScheduler().runTask(this, () -> {
                 final List<OnlinePlayer> list = onlinePlayers();
                 getServer().getScheduler().runTaskAsynchronously(this, () -> {
@@ -226,7 +226,7 @@ public final class ConnectPlugin extends JavaPlugin implements ConnectHandler, L
     }
 
     @EventHandler
-    public void onPlayerKick(PlayerKickEvent event) {
+    void onPlayerKick(PlayerKickEvent event) {
         getServer().getScheduler().runTask(this, () -> {
                 final List<OnlinePlayer> list = onlinePlayers();
                 getServer().getScheduler().runTaskAsynchronously(this, () -> {
@@ -236,7 +236,7 @@ public final class ConnectPlugin extends JavaPlugin implements ConnectHandler, L
     }
 
     @EventHandler
-    public void onConnectRemoteConnect(ConnectRemoteConnectEvent event) {
+    void onConnectRemoteConnect(ConnectRemoteConnectEvent event) {
         getLogger().info("Remote Connect: " + event.getRemote());
         for (Map.Entry<UUID, String> entry: debugPlayers.entrySet()) {
             Player player = getServer().getPlayer(entry.getKey());
@@ -247,13 +247,29 @@ public final class ConnectPlugin extends JavaPlugin implements ConnectHandler, L
     }
 
     @EventHandler
-    public void onConnectRemoteDisconnect(ConnectRemoteDisconnectEvent event) {
+    void onConnectRemoteDisconnect(ConnectRemoteDisconnectEvent event) {
         getLogger().info("Remote Disconnect: " + event.getRemote());
         for (Map.Entry<UUID, String> entry: debugPlayers.entrySet()) {
             Player player = getServer().getPlayer(entry.getKey());
             if (player != null) {
                 player.sendMessage(colorize("[&7C&r] Remote Disconnect: ") + event.getRemote());
             }
+        }
+    }
+
+    @EventHandler
+    void onConnectMessage(ConnectMessageEvent event) {
+        Message message = event.getMessage();
+        switch (message.getChannel()) {
+        case "connect:runall": {
+            String cmd = message.getPayload().toString();
+            getLogger().info("Received runall: " + cmd);
+            Bukkit.getScheduler().runTask(this, () -> {
+                    Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd);
+                });
+            break;
+        }
+        default: break;
         }
     }
 
