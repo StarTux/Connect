@@ -148,6 +148,7 @@ public final class ConnectPlugin extends JavaPlugin implements ConnectHandler, L
 
     // Event
 
+    @EventHandler
     void onPlayerJoin(PlayerJoinEvent event) {
         final List<OnlinePlayer> list = onlinePlayers();
         getServer().getScheduler().runTaskAsynchronously(this, () -> {
@@ -155,6 +156,7 @@ public final class ConnectPlugin extends JavaPlugin implements ConnectHandler, L
             });
     }
 
+    @EventHandler
     void onPlayerQuit(PlayerQuitEvent event) {
         getServer().getScheduler().runTask(this, () -> {
                 final List<OnlinePlayer> list = onlinePlayers();
@@ -164,6 +166,7 @@ public final class ConnectPlugin extends JavaPlugin implements ConnectHandler, L
             });
     }
 
+    @EventHandler
     void onPlayerKick(PlayerKickEvent event) {
         getServer().getScheduler().runTask(this, () -> {
                 final List<OnlinePlayer> list = onlinePlayers();
