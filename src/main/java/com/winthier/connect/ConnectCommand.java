@@ -1,26 +1,23 @@
 package com.winthier.connect;
 
-import com.cavetale.core.command.CommandNode;
+import com.cavetale.core.command.AbstractCommand;
 import com.google.gson.Gson;
+import com.winthier.connect.payload.OnlinePlayer;
 import java.util.List;
 import java.util.Map;
-import lombok.RequiredArgsConstructor;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import org.bukkit.ChatColor;
-import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.command.TabExecutor;
-import org.bukkit.entity.Player;
 
-@RequiredArgsConstructor
-public final class ConnectCommand implements TabExecutor {
-    private final ConnectPlugin plugin;
+public final class ConnectCommand extends AbstractCommand<ConnectPlugin> {
     private final Gson gson = new Gson();
-    private CommandNode rootNode;
 
-    protected void enable() {
-        rootNode = new CommandNode("connect");
+    protected ConnectCommand(final ConnectPlugin plugin) {
+        super(plugin, "connect");
+    }
+
+    @Override
+    protected void onEnable() {
         rootNode.addChild("status").denyTabCompletion()
             .description("Server Status")
             .senderCaller(this::status);
@@ -42,29 +39,18 @@ public final class ConnectCommand implements TabExecutor {
         rootNode.addChild("runall").arguments("<command>")
             .description("Run command on all servers")
             .senderCaller(this::runall);
-        plugin.getCommand("connect").setExecutor(this);
     }
 
-    @Override
-    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        return rootNode.call(sender, command, label, args);
-    }
-
-    @Override
-    public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
-        return rootNode.complete(sender, command, label, args);
-    }
-
-    boolean status(CommandSender sender, String[] args) {
+    protected boolean status(CommandSender sender, String[] args) {
         if (args.length != 0) return false;
-        sender.sendMessage(ChatColor.GREEN + "Server: " + plugin.getConnect().getServerName());
+        sender.sendMessage(Component.text("Server: " + plugin.getConnect().getServerName(), NamedTextColor.GREEN));
         for (String remote: plugin.getConnect().listServers()) {
-            sender.sendMessage("Remote: " + remote);
+            sender.sendMessage(Component.text("Remote: " + remote, NamedTextColor.WHITE));
         }
         return true;
     }
 
-    boolean reload(CommandSender sender, String[] args) {
+    protected boolean reload(CommandSender sender, String[] args) {
         if (args.length != 0) return false;
         plugin.reloadConfig();
         plugin.stopConnect();
@@ -73,32 +59,20 @@ public final class ConnectCommand implements TabExecutor {
         return true;
     }
 
-    boolean ping(CommandSender sender, String[] args) {
+    protected boolean ping(CommandSender sender, String[] args) {
         if (args.length != 0) return false;
         plugin.getConnect().ping();
         return true;
     }
 
-    boolean debug(CommandSender sender, String[] args) {
+    protected boolean debug(CommandSender sender, String[] args) {
         if (args.length > 1) return false;
-        Player player = sender instanceof Player ? (Player) sender : null;
-        if (player == null) {
-            plugin.setDebug(!plugin.isDebug());
-            plugin.getLogger().info("Debug mode: " + plugin.isDebug());
-            return true;
-        }
-        if (args.length == 0) {
-            plugin.getDebugPlayers().remove(player.getUniqueId());
-            player.sendMessage("Debug mode disabled");
-        } else if (args.length == 1) {
-            String chan = args[0];
-            plugin.getDebugPlayers().put(player.getUniqueId(), chan);
-            player.sendMessage("Debugging Connect channel " + chan);
-        }
+        plugin.setDebug(!plugin.isDebug());
+        plugin.getLogger().info("Debug mode: " + plugin.isDebug());
         return true;
     }
 
-    boolean who(CommandSender sender, String[] args) {
+    protected boolean who(CommandSender sender, String[] args) {
         if (args.length != 0) return false;
         for (Map.Entry<String, List<OnlinePlayer>> serverEntry
                  : plugin.getConnect().listPlayers().entrySet()) {
@@ -114,15 +88,15 @@ public final class ConnectCommand implements TabExecutor {
         return true;
     }
 
-    boolean packet(CommandSender sender, String[] args) {
+    protected boolean packet(CommandSender sender, String[] args) {
         if (args.length < 2) return false;
         String name = args[0];
         String channel = args[1];
-        Object payload;
+        String payload;
         if (args.length >= 3) {
             StringBuilder sb = new StringBuilder(args[2]);
             for (int i = 3; i < args.length; i += 1) sb.append(" ").append(args[i]);
-            payload = gson.fromJson(sb.toString(), Object.class);
+            payload = sb.toString();
         } else {
             payload = null;
         }
@@ -138,7 +112,7 @@ public final class ConnectCommand implements TabExecutor {
         return true;
     }
 
-    boolean runall(CommandSender sender, String[] args) {
+    protected boolean runall(CommandSender sender, String[] args) {
         if (args.length == 0) return false;
         String cmd = String.join(" ", args);
         plugin.getConnect().broadcastAll("connect:runall", cmd);

@@ -1,5 +1,6 @@
 package com.winthier.connect;
 
+import com.winthier.connect.payload.OnlinePlayer;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;

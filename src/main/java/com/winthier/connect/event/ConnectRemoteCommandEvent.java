@@ -1,6 +1,6 @@
 package com.winthier.connect.event;
 
-import com.winthier.connect.OnlinePlayer;
+import com.winthier.connect.payload.OnlinePlayer;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.event.Event;
