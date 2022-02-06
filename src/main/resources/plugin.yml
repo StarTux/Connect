@@ -8,7 +8,7 @@ api-version: 1.18
 author: StarTux
 website: https://cavetale.com
 
-depend: [Core]
+depend: [Core, Perm]
 softdepend: []
 
 commands:

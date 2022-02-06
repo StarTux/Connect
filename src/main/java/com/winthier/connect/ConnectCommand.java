@@ -2,12 +2,15 @@ package com.winthier.connect;
 
 import com.cavetale.core.command.AbstractCommand;
 import com.google.gson.Gson;
+import com.winthier.connect.message.RemotePlayerCommandMessage;
 import com.winthier.connect.payload.OnlinePlayer;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 
 public final class ConnectCommand extends AbstractCommand<ConnectPlugin> {
     private final Gson gson = new Gson();
@@ -39,6 +42,9 @@ public final class ConnectCommand extends AbstractCommand<ConnectPlugin> {
         rootNode.addChild("runall").arguments("<command>")
             .description("Run command on all servers")
             .senderCaller(this::runall);
+        rootNode.addChild("remoteplayer").arguments("<server> <command...>")
+            .description("Send a RemotePlayer command")
+            .playerCaller(this::remotePlayer);
     }
 
     protected boolean status(CommandSender sender, String[] args) {
@@ -117,6 +123,16 @@ public final class ConnectCommand extends AbstractCommand<ConnectPlugin> {
         String cmd = String.join(" ", args);
         plugin.getConnect().broadcastAll("connect:runall", cmd);
         sender.sendMessage(Component.text("Triggering command on all servers: /" + cmd, NamedTextColor.YELLOW));
+        return true;
+    }
+
+    protected boolean remotePlayer(Player player, String[] args) {
+        if (args.length < 2) return false;
+        String targetServer = args[0];
+        String command = String.join(" ", Arrays.copyOfRange(args, 1, args.length));
+        new RemotePlayerCommandMessage(player, command).send(targetServer);
+        player.sendMessage(Component.text("RemotePlayer command sent to " + targetServer + ": " + command,
+                                          NamedTextColor.YELLOW));
         return true;
     }
 }

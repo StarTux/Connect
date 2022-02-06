@@ -1,14 +1,22 @@
 package com.winthier.connect;
 
-import com.google.gson.Gson;
+import com.cavetale.core.util.Json;
 import com.winthier.connect.event.ConnectMessageEvent;
 import com.winthier.connect.event.ConnectRemoteCommandEvent;
 import com.winthier.connect.event.ConnectRemoteConnectEvent;
 import com.winthier.connect.event.ConnectRemoteDisconnectEvent;
+import com.winthier.connect.message.MessageSendPlayerMessage;
+import com.winthier.connect.message.PlayerSendServerMessage;
+import com.winthier.connect.message.RemotePlayerCommandMessage;
 import com.winthier.connect.payload.OnlinePlayer;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.function.Consumer;
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.Setter;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -17,23 +25,28 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerKickEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.server.PluginDisableEvent;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.spigotmc.event.player.PlayerSpawnLocationEvent;
 
 @Getter
 public final class ConnectPlugin extends JavaPlugin implements ConnectHandler, Listener {
+    @Getter protected static ConnectPlugin instance;
     private Connect connect = null;
     @Setter private boolean debug = false;
-    private Gson gson = new Gson();
+    private Map<UUID, AwaitingPlayer> awaitingPlayerMap = new HashMap<>();
 
     @Override
     public void onEnable() {
+        instance = this;
         saveDefaultConfig();
         startConnect();
         new ConnectCommand(this).enable();
         final RemoteCommandExecutor remoteCommandExecutor = new RemoteCommandExecutor(this);
         getCommand("remote").setExecutor(remoteCommandExecutor);
-        getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
+        Bungee.register(this);
         getServer().getPluginManager().registerEvents(this, this);
         connect.updatePlayerList(onlinePlayers());
     }
@@ -187,18 +200,69 @@ public final class ConnectPlugin extends JavaPlugin implements ConnectHandler, L
     }
 
     @EventHandler
-    void onConnectMessage(ConnectMessageEvent event) {
+    protected void onConnectMessage(ConnectMessageEvent event) {
         Message message = event.getMessage();
         switch (message.getChannel()) {
         case "connect:runall": {
-            String cmd = message.getPayload().toString();
+            String cmd = message.getPayload();
             getLogger().info("Received runall: " + cmd);
             Bukkit.getScheduler().runTask(this, () -> {
                     Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd);
                 });
             break;
         }
+        case RemotePlayerCommandMessage.CHANNEL: {
+            RemotePlayerCommandMessage payload = Json.deserialize(message.getPayload(), RemotePlayerCommandMessage.class);
+            ConnectRemotePlayer connectRemotePlayer = new ConnectRemotePlayer(payload.getUuid(),
+                                                                              payload.getName(),
+                                                                              payload.getOriginServerName());
+            getLogger().info(payload.getName() + " (" + payload.getOriginServerName()
+                             + ") sent remote command: " + payload.getCommand());
+            Bukkit.dispatchCommand(connectRemotePlayer, payload.getCommand());
+            break;
+        }
+        case PlayerSendServerMessage.CHANNEL: {
+            PlayerSendServerMessage payload = Json.deserialize(message.getPayload(), PlayerSendServerMessage.class);
+            Player player = Bukkit.getPlayer(payload.getUuid());
+            if (player == null) return;
+            Bungee.send(this, player, payload.getTargetServerName());
+            break;
+        }
+        case MessageSendPlayerMessage.CHANNEL: {
+            MessageSendPlayerMessage payload = Json.deserialize(message.getPayload(), MessageSendPlayerMessage.class);
+            Player player = Bukkit.getPlayer(payload.getUuid());
+            if (player == null) return;
+            player.sendMessage(payload.parseComponent());
+        }
         default: break;
         }
+    }
+
+    private record AwaitingPlayer(Plugin plugin, Consumer<PlayerSpawnLocationEvent> callback) { }
+
+    protected void bringAndAwait(@NonNull UUID uuid,
+                                 @NonNull Plugin plugin,
+                                 @NonNull String originServerName,
+                                 @NonNull Consumer<PlayerSpawnLocationEvent> callback) {
+        new PlayerSendServerMessage(uuid, connect.getServerName()).send(originServerName);
+        AwaitingPlayer rec = new AwaitingPlayer(plugin, callback);
+        awaitingPlayerMap.put(uuid, rec);
+        Bukkit.getScheduler().runTaskLater(this, () -> {
+                if (awaitingPlayerMap.get(uuid) != rec) return;
+                awaitingPlayerMap.remove(uuid);
+                rec.callback().accept(null);
+            }, 60L);
+    }
+
+    @EventHandler
+    protected void onPlayerSpawnLocation(PlayerSpawnLocationEvent event) {
+        AwaitingPlayer awaitingPlayer = awaitingPlayerMap.remove(event.getPlayer().getUniqueId());
+        if (awaitingPlayer == null) return;
+        awaitingPlayer.callback().accept(event);
+    }
+
+    @EventHandler
+    protected void onPluginDisable(PluginDisableEvent event) {
+        awaitingPlayerMap.entrySet().removeIf(it -> it.getValue().plugin == event.getPlugin());
     }
 }
