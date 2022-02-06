@@ -1,8 +1,8 @@
 package com.winthier.connect;
 
 import com.cavetale.core.command.RemotePlayer;
+import com.cavetale.core.perm.Perm;
 import com.winthier.connect.message.MessageSendPlayerMessage;
-import com.winthier.perm.Perm;
 import java.util.UUID;
 import java.util.function.Consumer;
 import lombok.Getter;
@@ -65,12 +65,12 @@ public final class ConnectRemotePlayer implements RemotePlayer {
 
     @Override
     public boolean isPermissionSet(String permission) {
-        return Perm.getPerms(uuid).containsKey(permission);
+        return Perm.get().getPerms(uuid).containsKey(permission);
     }
 
     @Override
     public boolean hasPermission(String permission) {
-        return Perm.has(uuid, permission);
+        return Perm.get().has(uuid, permission);
     }
 
     @Override
