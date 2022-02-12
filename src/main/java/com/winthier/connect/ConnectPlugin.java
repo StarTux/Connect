@@ -34,13 +34,15 @@ import org.spigotmc.event.player.PlayerSpawnLocationEvent;
 @Getter
 public final class ConnectPlugin extends JavaPlugin implements ConnectHandler, Listener {
     @Getter protected static ConnectPlugin instance;
-    private Connect connect = null;
+    protected Connect connect = null;
     @Setter private boolean debug = false;
     private Map<UUID, AwaitingPlayer> awaitingPlayerMap = new HashMap<>();
+    private final CoreConnect coreConnect = new CoreConnect();
 
     @Override
     public void onEnable() {
         instance = this;
+        coreConnect.register();
         saveDefaultConfig();
         startConnect();
         new ConnectCommand(this).enable();
