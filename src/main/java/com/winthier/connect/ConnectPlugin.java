@@ -40,9 +40,13 @@ public final class ConnectPlugin extends JavaPlugin implements ConnectHandler, L
     private final CoreConnect coreConnect = new CoreConnect();
 
     @Override
+    public void onLoad() {
+        coreConnect.register();
+    }
+
+    @Override
     public void onEnable() {
         instance = this;
-        coreConnect.register();
         saveDefaultConfig();
         startConnect();
         new ConnectCommand(this).enable();
