@@ -60,6 +60,7 @@ public final class ConnectPlugin extends JavaPlugin implements ConnectHandler, L
     @Override
     public void onDisable() {
         stopConnect();
+        coreConnect.unregister();
     }
 
     OnlinePlayer onlinePlayer(Player player) {
