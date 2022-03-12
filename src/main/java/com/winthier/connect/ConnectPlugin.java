@@ -100,7 +100,7 @@ public final class ConnectPlugin extends JavaPlugin implements ConnectHandler, L
     }
 
     protected void startConnect() {
-        getServer().getScheduler().runTaskAsynchronously(this, connect);
+        task = getServer().getScheduler().runTaskAsynchronously(this, connect);
     }
 
     void stopConnect() {
