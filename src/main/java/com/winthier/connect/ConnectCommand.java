@@ -60,6 +60,7 @@ public final class ConnectCommand extends AbstractCommand<ConnectPlugin> {
         if (args.length != 0) return false;
         plugin.reloadConfig();
         plugin.stopConnect();
+        plugin.createConnect();
         plugin.startConnect();
         sender.sendMessage("Configuration reloaded");
         return true;

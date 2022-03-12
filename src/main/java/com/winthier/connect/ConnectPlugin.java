@@ -29,6 +29,7 @@ import org.bukkit.event.server.PluginDisableEvent;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scheduler.BukkitTask;
 import org.spigotmc.event.player.PlayerSpawnLocationEvent;
 
 @Getter
@@ -38,10 +39,12 @@ public final class ConnectPlugin extends JavaPlugin implements ConnectHandler, L
     @Setter private boolean debug = false;
     private Map<UUID, AwaitingPlayer> awaitingPlayerMap = new HashMap<>();
     private final CoreConnect coreConnect = new CoreConnect();
+    private BukkitTask task;
 
     @Override
     public void onLoad() {
         instance = this;
+        createConnect();
         coreConnect.register();
     }
 
@@ -77,9 +80,7 @@ public final class ConnectPlugin extends JavaPlugin implements ConnectHandler, L
 
     // Connect
 
-    void startConnect() {
-        stopConnect();
-        reloadConfig();
+    protected void createConnect() {
         String serverName = getConfig().getString("ServerName");
         debug = getConfig().getBoolean("Debug");
         if (getConfig().isConfigurationSection("Server")) {
@@ -96,6 +97,9 @@ public final class ConnectPlugin extends JavaPlugin implements ConnectHandler, L
         } else {
             connect = new Connect(serverName, this);
         }
+    }
+
+    protected void startConnect() {
         getServer().getScheduler().runTaskAsynchronously(this, connect);
     }
 
@@ -103,6 +107,7 @@ public final class ConnectPlugin extends JavaPlugin implements ConnectHandler, L
         if (connect == null) return;
         connect.stop();
         connect = null;
+        task.cancel();
     }
 
     // ConnectHandler
