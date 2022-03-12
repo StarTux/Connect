@@ -41,12 +41,12 @@ public final class ConnectPlugin extends JavaPlugin implements ConnectHandler, L
 
     @Override
     public void onLoad() {
+        instance = this;
         coreConnect.register();
     }
 
     @Override
     public void onEnable() {
-        instance = this;
         saveDefaultConfig();
         startConnect();
         new ConnectCommand(this).enable();
