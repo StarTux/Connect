@@ -2,7 +2,6 @@ name: Connect
 description: Connect Bukkit servers
 author: StarTux
 version: 0.1
-api-version: 1.13
 website: https://cavetale.com
 main: com.winthier.connect.ConnectPlugin
 depend: [Redis]
