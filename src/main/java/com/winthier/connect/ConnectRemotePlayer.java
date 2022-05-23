@@ -10,9 +10,12 @@ import lombok.RequiredArgsConstructor;
 import net.kyori.adventure.identity.Identified;
 import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.text.Component;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.entity.Player;
+import org.bukkit.event.player.PlayerTeleportEvent.TeleportCause;
 import org.bukkit.permissions.Permission;
 import org.bukkit.plugin.Plugin;
-import org.spigotmc.event.player.PlayerSpawnLocationEvent;
 
 /**
  * Represents a player sending a command from a different server.
@@ -29,8 +32,14 @@ public final class ConnectRemotePlayer implements RemotePlayer {
     }
 
     @Override
-    public void bring(Plugin plugin, Consumer<PlayerSpawnLocationEvent> callback) {
-        ConnectPlugin.instance.bringAndAwait(uuid, plugin, originServerName, callback);
+    public void bring(Plugin plugin, Location location, Consumer<Player> callback) {
+        Player player = getPlayer();
+        if (player != null) {
+            player.teleport(location, TeleportCause.COMMAND);
+            callback.accept(player);
+        } else {
+            ConnectPlugin.instance.bringAndAwait(uuid, plugin, originServerName, location, callback);
+        }
     }
 
     @Override
@@ -50,7 +59,12 @@ public final class ConnectRemotePlayer implements RemotePlayer {
 
     @Override
     public void sendMessage(Component component) {
-        new MessageSendPlayerMessage(uuid, component).send(originServerName);
+        Player player = getPlayer();
+        if (player != null) {
+            player.sendMessage(component);
+        } else {
+            new MessageSendPlayerMessage(uuid, component).send(originServerName);
+        }
     }
 
     @Override
@@ -81,5 +95,15 @@ public final class ConnectRemotePlayer implements RemotePlayer {
     @Override
     public boolean hasPermission(Permission permission) {
         return hasPermission(permission.getName());
+    }
+
+    @Override
+    public boolean isPlayer() {
+        return getPlayer() != null;
+    }
+
+    @Override
+    public Player getPlayer() {
+        return Bukkit.getPlayer(uuid);
     }
 }

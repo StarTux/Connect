@@ -19,9 +19,11 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerKickEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -250,27 +252,37 @@ public final class ConnectPlugin extends JavaPlugin implements ConnectHandler, L
         }
     }
 
-    private record AwaitingPlayer(Plugin plugin, Consumer<PlayerSpawnLocationEvent> callback) { }
+    private record AwaitingPlayer(Plugin plugin, Location location, Consumer<Player> callback) { }
 
     protected void bringAndAwait(@NonNull UUID uuid,
                                  @NonNull Plugin plugin,
                                  @NonNull String originServerName,
-                                 @NonNull Consumer<PlayerSpawnLocationEvent> callback) {
+                                 @NonNull Location location,
+                                 Consumer<Player> callback) {
         new PlayerSendServerMessage(uuid, connect.getServerName()).send(originServerName);
-        AwaitingPlayer rec = new AwaitingPlayer(plugin, callback);
+        AwaitingPlayer rec = new AwaitingPlayer(plugin, location, callback);
         awaitingPlayerMap.put(uuid, rec);
         Bukkit.getScheduler().runTaskLater(this, () -> {
                 if (awaitingPlayerMap.get(uuid) != rec) return;
                 awaitingPlayerMap.remove(uuid);
-                rec.callback().accept(null);
+                if (callback != null) {
+                    callback.accept(null);
+                }
             }, 60L);
     }
 
     @EventHandler
-    protected void onPlayerSpawnLocation(PlayerSpawnLocationEvent event) {
-        AwaitingPlayer awaitingPlayer = awaitingPlayerMap.remove(event.getPlayer().getUniqueId());
+    protected void onAwaitingPlayerSpawnLocation(PlayerSpawnLocationEvent event) {
+        AwaitingPlayer awaitingPlayer = awaitingPlayerMap.get(event.getPlayer().getUniqueId());
         if (awaitingPlayer == null) return;
-        awaitingPlayer.callback().accept(event);
+        event.setSpawnLocation(awaitingPlayer.location());
+    }
+
+    @EventHandler
+    protected void onAwaitingPlayerJoin(PlayerJoinEvent event) {
+        AwaitingPlayer awaitingPlayer = awaitingPlayerMap.remove(event.getPlayer().getUniqueId());
+        if (awaitingPlayer == null || awaitingPlayer.callback() == null) return;
+        awaitingPlayer.callback().accept(event.getPlayer());
     }
 
     @EventHandler
