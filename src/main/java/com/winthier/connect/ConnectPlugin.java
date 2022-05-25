@@ -24,7 +24,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerKickEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.server.PluginDisableEvent;
@@ -40,7 +39,8 @@ public final class ConnectPlugin extends JavaPlugin implements ConnectHandler, L
     protected Connect connect = null;
     @Setter private boolean debug = false;
     private Map<UUID, AwaitingPlayer> awaitingPlayerMap = new HashMap<>();
-    private final CoreConnect coreConnect = new CoreConnect();
+    protected Map<String, Map<UUID, RemotePlayerCommandMessage>> pendingRemoteCommandMap = new HashMap<>();
+    private final CoreConnect coreConnect = new CoreConnect(this);
     private BukkitTask task;
 
     @Override
@@ -120,6 +120,12 @@ public final class ConnectPlugin extends JavaPlugin implements ConnectHandler, L
         new BukkitRunnable() {
             @Override public void run() {
                 getServer().getPluginManager().callEvent(new ConnectRemoteConnectEvent(remote));
+                Map<UUID, RemotePlayerCommandMessage> pendingMap = pendingRemoteCommandMap.remove(remote);
+                if (pendingMap != null) {
+                    for (RemotePlayerCommandMessage message : pendingMap.values()) {
+                        message.send(remote);
+                    }
+                }
             }
         }.runTask(this);
     }

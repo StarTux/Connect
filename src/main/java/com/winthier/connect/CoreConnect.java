@@ -2,20 +2,43 @@ package com.winthier.connect;
 
 import com.winthier.connect.message.RemotePlayerCommandMessage;
 import com.winthier.connect.payload.OnlinePlayer;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
+import lombok.RequiredArgsConstructor;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import static net.kyori.adventure.text.Component.text;
+import static net.kyori.adventure.text.format.NamedTextColor.*;
 
+@RequiredArgsConstructor
 public final class CoreConnect implements com.cavetale.core.connect.Connect {
+    private final ConnectPlugin plugin;
+
+    @Override
+    public ConnectPlugin getPlugin() {
+        return plugin;
+    }
+
     @Override
     public String getServerName() {
-        return ConnectPlugin.instance.connect.getServerName();
+        return plugin.connect.getServerName();
     }
 
     @Override
     public void dispatchRemoteCommand(Player player, String command, String targetServer) {
-        new RemotePlayerCommandMessage(player, command).send(targetServer);
+        RemotePlayerCommandMessage message = new RemotePlayerCommandMessage(player, command);
+        if (plugin.connect.listServers().contains(targetServer)) {
+            message.send(targetServer);
+        } else {
+            plugin.pendingRemoteCommandMap.computeIfAbsent(targetServer, t -> new HashMap<>())
+                .put(player.getUniqueId(), message);
+            Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+                    Redis.lpush("cavetale.server_wake." + targetServer, "wake_up", 30L);
+                });
+            player.sendMessage(text("Please wait while server is starting up...", YELLOW));
+        }
     }
 
     @Override
