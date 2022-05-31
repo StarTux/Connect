@@ -1,9 +1,12 @@
 package com.winthier.connect;
 
+import com.cavetale.core.command.RemotePlayer;
 import com.winthier.connect.message.RemotePlayerCommandMessage;
 import com.winthier.connect.payload.OnlinePlayer;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -47,6 +50,17 @@ public final class CoreConnect implements com.cavetale.core.connect.Connect {
         for (OnlinePlayer player : Connect.getInstance().getOnlinePlayers()) {
             result.add(player.getUuid());
         }
+        return result;
+    }
+
+    @Override
+    public List<RemotePlayer> getRemotePlayers() {
+        List<RemotePlayer> result = new ArrayList<>();
+        Connect.getInstance().listPlayers().forEach((server, list) -> {
+                for (OnlinePlayer online : list) {
+                    result.add(new ConnectRemotePlayer(online.getUuid(), online.getName(), server));
+                }
+            });
         return result;
     }
 }
