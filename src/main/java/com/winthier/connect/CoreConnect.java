@@ -30,6 +30,21 @@ public final class CoreConnect implements com.cavetale.core.connect.Connect {
     }
 
     @Override
+    public void sendMessage(String targetServer, String channel, String payload) {
+        plugin.connect.send(targetServer, channel, payload);
+    }
+
+    @Override
+    public void broadcastMessage(String channel, String payload) {
+        plugin.connect.broadcast(channel, payload);
+    }
+
+    @Override
+    public void broadcastMessageToAll(String channel, String payload) {
+        plugin.connect.broadcastAll(channel, payload);
+    }
+
+    @Override
     public void dispatchRemoteCommand(Player player, String command, String targetServer) {
         RemotePlayerCommandMessage message = new RemotePlayerCommandMessage(player, command);
         if (plugin.connect.listServers().contains(targetServer)) {
@@ -62,5 +77,13 @@ public final class CoreConnect implements com.cavetale.core.connect.Connect {
                 }
             });
         return result;
+    }
+
+    @Override
+    public RemotePlayer getRemotePlayer(UUID uuid) {
+        OnlinePlayer player = plugin.connect.findOnlinePlayer(uuid);
+        return player != null
+            ? new ConnectRemotePlayer(player.getUuid(), player.getName(), player.getServer())
+            : null;
     }
 }

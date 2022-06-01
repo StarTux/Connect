@@ -18,7 +18,7 @@ public final class RemoteCommandExecutor implements CommandExecutor {
         switch (label) {
         case "remote":
             if (args.length == 0) return false;
-            OnlinePlayer op = new OnlinePlayer(player.getUniqueId(), player.getName());
+            OnlinePlayer op = new OnlinePlayer(player.getUniqueId(), player.getName(), plugin.connect.getServerName());
             plugin.getConnect().broadcastRemoteCommand(op, args);
             break;
         default:

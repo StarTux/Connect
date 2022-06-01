@@ -10,6 +10,7 @@ import com.winthier.connect.message.PlayerSendServerMessage;
 import com.winthier.connect.message.RemotePlayerCommandMessage;
 import com.winthier.connect.payload.OnlinePlayer;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -59,7 +60,7 @@ public final class ConnectPlugin extends JavaPlugin implements ConnectHandler, L
         getCommand("remote").setExecutor(remoteCommandExecutor);
         Bungee.register(this);
         getServer().getPluginManager().registerEvents(this, this);
-        connect.updatePlayerList(onlinePlayers());
+        connect.updatePlayerList(localOnlinePlayers());
     }
 
     @Override
@@ -68,14 +69,10 @@ public final class ConnectPlugin extends JavaPlugin implements ConnectHandler, L
         coreConnect.unregister();
     }
 
-    OnlinePlayer onlinePlayer(Player player) {
-        return new OnlinePlayer(player.getUniqueId(), player.getName());
-    }
-
-    List<OnlinePlayer> onlinePlayers() {
+    private List<OnlinePlayer> localOnlinePlayers() {
         List<OnlinePlayer> result = new ArrayList<>();
-        for (Player player: getServer().getOnlinePlayers()) {
-            result.add(onlinePlayer(player));
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            result.add(new OnlinePlayer(player.getUniqueId(), player.getName(), connect.getServerName()));
         }
         return result;
     }
@@ -153,7 +150,13 @@ public final class ConnectPlugin extends JavaPlugin implements ConnectHandler, L
 
     private void syncHandleMessage(Message message) {
         handleSpecialMessages(message);
-        getServer().getPluginManager().callEvent(new ConnectMessageEvent(message));
+        new ConnectMessageEvent(message).callEvent();
+        new com.cavetale.core.event.connect
+            .ConnectMessageEvent(message.getChannel(),
+                                 message.getPayload(),
+                                 message.getFrom(),
+                                 message.getTo(),
+                                 new Date(message.getCreated())).callEvent();
     }
 
     private void handleSpecialMessages(Message message) {
@@ -183,7 +186,7 @@ public final class ConnectPlugin extends JavaPlugin implements ConnectHandler, L
 
     @EventHandler
     void onPlayerJoin(PlayerJoinEvent event) {
-        final List<OnlinePlayer> list = onlinePlayers();
+        final List<OnlinePlayer> list = localOnlinePlayers();
         getServer().getScheduler().runTaskAsynchronously(this, () -> {
                 connect.updatePlayerList(list);
             });
@@ -192,7 +195,7 @@ public final class ConnectPlugin extends JavaPlugin implements ConnectHandler, L
     @EventHandler
     void onPlayerQuit(PlayerQuitEvent event) {
         getServer().getScheduler().runTask(this, () -> {
-                final List<OnlinePlayer> list = onlinePlayers();
+                final List<OnlinePlayer> list = localOnlinePlayers();
                 getServer().getScheduler().runTaskAsynchronously(this, () -> {
                         connect.updatePlayerList(list);
                     });
@@ -202,7 +205,7 @@ public final class ConnectPlugin extends JavaPlugin implements ConnectHandler, L
     @EventHandler
     void onPlayerKick(PlayerKickEvent event) {
         getServer().getScheduler().runTask(this, () -> {
-                final List<OnlinePlayer> list = onlinePlayers();
+                final List<OnlinePlayer> list = localOnlinePlayers();
                 getServer().getScheduler().runTaskAsynchronously(this, () -> {
                         connect.updatePlayerList(list);
                     });
