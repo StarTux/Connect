@@ -111,6 +111,11 @@ public final class ConnectRemotePlayer implements RemotePlayer {
 
     @Override
     public void openBook(ItemStack book) {
-        new PlayerOpenBookMessage(uuid, book).send(originServerName);
+        Player player = getPlayer();
+        if (player != null) {
+            player.openBook(book);
+        } else {
+            new PlayerOpenBookMessage(uuid, book).send(originServerName);
+        }
     }
 }
