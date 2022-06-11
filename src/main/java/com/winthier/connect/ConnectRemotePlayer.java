@@ -3,6 +3,7 @@ package com.winthier.connect;
 import com.cavetale.core.command.RemotePlayer;
 import com.cavetale.core.perm.Perm;
 import com.winthier.connect.message.MessageSendPlayerMessage;
+import com.winthier.connect.message.PlayerOpenBookMessage;
 import java.util.UUID;
 import java.util.function.Consumer;
 import lombok.Getter;
@@ -14,6 +15,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerTeleportEvent.TeleportCause;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.permissions.Permission;
 import org.bukkit.plugin.Plugin;
 
@@ -105,5 +107,10 @@ public final class ConnectRemotePlayer implements RemotePlayer {
     @Override
     public Player getPlayer() {
         return Bukkit.getPlayer(uuid);
+    }
+
+    @Override
+    public void openBook(ItemStack book) {
+        new PlayerOpenBookMessage(uuid, book).send(originServerName);
     }
 }

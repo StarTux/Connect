@@ -6,6 +6,7 @@ import com.winthier.connect.event.ConnectRemoteCommandEvent;
 import com.winthier.connect.event.ConnectRemoteConnectEvent;
 import com.winthier.connect.event.ConnectRemoteDisconnectEvent;
 import com.winthier.connect.message.MessageSendPlayerMessage;
+import com.winthier.connect.message.PlayerOpenBookMessage;
 import com.winthier.connect.message.PlayerSendServerMessage;
 import com.winthier.connect.message.RemotePlayerCommandMessage;
 import com.winthier.connect.payload.OnlinePlayer;
@@ -256,6 +257,12 @@ public final class ConnectPlugin extends JavaPlugin implements ConnectHandler, L
             Player player = Bukkit.getPlayer(payload.getUuid());
             if (player == null) return;
             player.sendMessage(payload.parseComponent());
+        }
+        case PlayerOpenBookMessage.CHANNEL: {
+            PlayerOpenBookMessage payload = Json.deserialize(message.getPayload(), PlayerOpenBookMessage.class);
+            Player player = Bukkit.getPlayer(payload.getTarget());
+            if (player == null) return;
+            player.openBook(payload.parseBook());
         }
         default: break;
         }
