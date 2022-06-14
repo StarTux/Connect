@@ -1,6 +1,8 @@
 package com.winthier.connect;
 
 import com.cavetale.core.command.RemotePlayer;
+import com.cavetale.core.connect.NetworkServer;
+import com.cavetale.core.connect.ServerGroup;
 import com.winthier.connect.message.RemotePlayerCommandMessage;
 import com.winthier.connect.payload.OnlinePlayer;
 import java.util.ArrayList;
@@ -40,8 +42,29 @@ public final class CoreConnect implements com.cavetale.core.connect.Connect {
     }
 
     @Override
+    public void broadcastMessage(ServerGroup group, String channel, String payload) {
+        NetworkServer thisServer = NetworkServer.current();
+        for (String server : plugin.connect.listServers()) {
+            NetworkServer thatServer = NetworkServer.of(server);
+            if (thisServer != thatServer && thatServer.group == group) {
+                plugin.connect.send(server, channel, payload);
+            }
+        }
+    }
+
+    @Override
     public void broadcastMessageToAll(String channel, String payload) {
         plugin.connect.broadcastAll(channel, payload);
+    }
+
+    @Override
+    public void broadcastMessageToAll(ServerGroup group, String channel, String payload) {
+        for (String server : plugin.connect.listServers()) {
+            NetworkServer thatServer = NetworkServer.of(server);
+            if (thatServer.group == group) {
+                plugin.connect.send(server, channel, payload);
+            }
+        }
     }
 
     @Override
