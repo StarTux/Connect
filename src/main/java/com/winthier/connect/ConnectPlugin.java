@@ -24,6 +24,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerKickEvent;
@@ -287,14 +288,14 @@ public final class ConnectPlugin extends JavaPlugin implements ConnectHandler, L
             }, 60L);
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGHEST)
     protected void onAwaitingPlayerSpawnLocation(PlayerSpawnLocationEvent event) {
         AwaitingPlayer awaitingPlayer = awaitingPlayerMap.get(event.getPlayer().getUniqueId());
         if (awaitingPlayer == null) return;
         event.setSpawnLocation(awaitingPlayer.location());
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.LOWEST)
     protected void onAwaitingPlayerJoin(PlayerJoinEvent event) {
         AwaitingPlayer awaitingPlayer = awaitingPlayerMap.remove(event.getPlayer().getUniqueId());
         if (awaitingPlayer == null || awaitingPlayer.callback() == null) return;
