@@ -109,4 +109,9 @@ public final class CoreConnect implements com.cavetale.core.connect.Connect {
             ? new ConnectRemotePlayer(player.getUuid(), player.getName(), player.getServer())
             : null;
     }
+
+    @Override
+    public Set<String> getOnlineServerNames() {
+        return Set.copyOf(plugin.connect.listServers());
+    }
 }
