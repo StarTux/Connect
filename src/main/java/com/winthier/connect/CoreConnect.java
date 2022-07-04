@@ -129,6 +129,6 @@ public final class CoreConnect implements com.cavetale.core.connect.Connect {
 
     @Override
     public Set<String> getOnlineServerNames() {
-        return Set.copyOf(plugin.connect.cachedPlayerMap.keySet());
+        return Set.copyOf(plugin.connect.cachedServerList);
     }
 }
