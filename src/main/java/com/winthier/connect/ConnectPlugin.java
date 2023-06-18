@@ -258,6 +258,7 @@ public final class ConnectPlugin extends JavaPlugin implements ConnectHandler, L
             Player player = Bukkit.getPlayer(payload.getUuid());
             if (player == null) return;
             player.sendMessage(payload.parseComponent());
+            break;
         }
         case PlayerOpenBookMessage.CHANNEL: {
             PlayerOpenBookMessage payload = Json.deserialize(message.getPayload(), PlayerOpenBookMessage.class);
