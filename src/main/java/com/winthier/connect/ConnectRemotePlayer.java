@@ -1,5 +1,6 @@
 package com.winthier.connect;
 
+import com.cavetale.core.command.PlayerTeleportUtil;
 import com.cavetale.core.command.RemotePlayer;
 import com.cavetale.core.perm.Perm;
 import com.winthier.connect.message.MessageSendPlayerMessage;
@@ -40,7 +41,12 @@ public final class ConnectRemotePlayer implements RemotePlayer {
             player.teleport(location, TeleportCause.COMMAND);
             callback.accept(player);
         } else {
-            ConnectPlugin.instance.bringAndAwait(uuid, plugin, originServerName, location, callback);
+            PlayerTeleportUtil.loadNearbyChunks(location, util -> {
+                    ConnectPlugin.instance.bringAndAwait(uuid, plugin, originServerName, location, player2 -> {
+                            util.cleanup();
+                            callback.accept(player2);
+                        });
+                });
         }
     }
 
