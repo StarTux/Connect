@@ -9,8 +9,6 @@ import java.util.UUID;
 import java.util.function.Consumer;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import net.kyori.adventure.identity.Identified;
-import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -53,16 +51,6 @@ public final class ConnectRemotePlayer implements RemotePlayer {
     @Override
     public void sendMessage(String msg) {
         sendMessage(Component.text(msg));
-    }
-
-    @Override
-    public void sendMessage(Identity identity, Component component) {
-        sendMessage(component);
-    }
-
-    @Override
-    public void sendMessage(Identified identified, Component component) {
-        sendMessage(component);
     }
 
     @Override
