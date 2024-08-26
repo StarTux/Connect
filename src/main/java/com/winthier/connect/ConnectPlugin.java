@@ -277,7 +277,6 @@ public final class ConnectPlugin extends JavaPlugin implements ConnectHandler, L
                                  @NonNull String originServerName,
                                  @NonNull Location location,
                                  Consumer<Player> callback) {
-        new PlayerSendServerMessage(uuid, connect.getServerName()).send(originServerName);
         AwaitingPlayer rec = new AwaitingPlayer(plugin, location, callback);
         awaitingPlayerMap.put(uuid, rec);
         Bukkit.getScheduler().runTaskLater(this, () -> {
@@ -287,6 +286,7 @@ public final class ConnectPlugin extends JavaPlugin implements ConnectHandler, L
                     callback.accept(null);
                 }
             }, 60L);
+        new PlayerSendServerMessage(uuid, connect.getServerName()).send(originServerName);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
