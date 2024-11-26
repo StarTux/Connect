@@ -1,5 +1,6 @@
 package com.winthier.connect;
 
+import com.cavetale.core.playercache.PlayerCache;
 import com.cavetale.core.util.Json;
 import com.winthier.connect.event.ConnectMessageEvent;
 import com.winthier.connect.event.ConnectRemoteCommandEvent;
@@ -277,7 +278,7 @@ public final class ConnectPlugin extends JavaPlugin implements ConnectHandler, L
                                  @NonNull String originServerName,
                                  @NonNull Location location,
                                  Consumer<Player> callback) {
-        AwaitingPlayer rec = new AwaitingPlayer(plugin, location, callback);
+        final AwaitingPlayer rec = new AwaitingPlayer(plugin, location, callback);
         awaitingPlayerMap.put(uuid, rec);
         Bukkit.getScheduler().runTaskLater(this, () -> {
                 if (awaitingPlayerMap.get(uuid) != rec) return;
@@ -285,7 +286,11 @@ public final class ConnectPlugin extends JavaPlugin implements ConnectHandler, L
                 if (callback != null) {
                     callback.accept(null);
                 }
-            }, 60L);
+                getLogger().info("Awaiting player callback timeout:"
+                                 + " " + PlayerCache.nameForUuid(uuid)
+                                 + " location:" + location.getWorld().getName() + " " + location.getBlockX() + " " + location.getBlockY() + " " + location.getBlockZ()
+                                 + " callback:" + (callback != null));
+            }, 100L);
         new PlayerSendServerMessage(uuid, connect.getServerName()).send(originServerName);
     }
 
