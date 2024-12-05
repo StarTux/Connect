@@ -290,7 +290,7 @@ public final class ConnectPlugin extends JavaPlugin implements ConnectHandler, L
                                  + " " + PlayerCache.nameForUuid(uuid)
                                  + " location:" + location.getWorld().getName() + " " + location.getBlockX() + " " + location.getBlockY() + " " + location.getBlockZ()
                                  + " callback:" + (callback != null));
-            }, 100L);
+            }, 200L);
         new PlayerSendServerMessage(uuid, connect.getServerName()).send(originServerName);
     }
 
