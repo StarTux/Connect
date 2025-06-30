@@ -12,6 +12,7 @@ import com.winthier.connect.message.PlayerSendServerMessage;
 import com.winthier.connect.message.RemotePlayerCommandMessage;
 import com.winthier.connect.payload.OnlinePlayer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -23,6 +24,7 @@ import lombok.NonNull;
 import lombok.Setter;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.command.PluginCommand;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -244,7 +246,13 @@ public final class ConnectPlugin extends JavaPlugin implements ConnectHandler, L
                                                                               payload.getOriginServerName());
             getLogger().info(payload.getName() + " (" + payload.getOriginServerName()
                              + ") sent remote command: " + payload.getCommand());
-            Bukkit.dispatchCommand(connectRemotePlayer, payload.getCommand());
+            final String[] args = payload.getCommand().split(" +");
+            final String commandName = args[0];
+            if (!(Bukkit.getCommandMap().getCommand(commandName) instanceof PluginCommand command)) {
+                getLogger().severe("Not a plugin command: " + commandName);
+                return;
+            }
+            command.getExecutor().onCommand(connectRemotePlayer, command, commandName, Arrays.copyOfRange(args, 1, args.length));
             break;
         }
         case PlayerSendServerMessage.CHANNEL: {
