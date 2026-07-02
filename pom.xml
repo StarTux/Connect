@@ -1,85 +1,22 @@
 <project>
   <modelVersion>4.0.0</modelVersion>
 
+  <parent>
+    <groupId>com.cavetale.pom</groupId>
+    <artifactId>cavetale-pom-base</artifactId>
+    <version>0.1-SNAPSHOT</version>
+  </parent>
+
   <groupId>com.winthier.connect</groupId>
   <artifactId>connect</artifactId>
   <version>0.1-SNAPSHOT</version>
 
   <name>Connect</name>
-  <packaging>jar</packaging>
   <url>https://github.com/StarTux/Connect</url>
+  <packaging>jar</packaging>
 
-  <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-  </properties>
-  <repositories>
-
-    <!-- Cavetale Repo -->
-    <repository>
-      <id>cavetale</id>
-      <url>https://cavetale.com/jenkins/plugin/repository/everything/</url>
-    </repository>
-
-    <!-- Paper Repo -->
-    <repository>
-      <id>papermc</id>
-      <url>https://repo.papermc.io/repository/maven-public/</url>
-    </repository>
-
-  </repositories>
-  <dependencies>
-
-    <!-- Paper API -->
-    <dependency>
-      <groupId>io.papermc.paper</groupId>
-      <artifactId>paper-api</artifactId>
-      <version>1.21.11-R0.1-SNAPSHOT</version> <!-- Paper Version -->
-      <scope>provided</scope>
-    </dependency>
-
-    <!-- Connect-Core -->
-    <dependency>
-      <groupId>com.winthier.connect</groupId>
-      <artifactId>connect-core</artifactId>
-      <version>0.1-SNAPSHOT</version>
-      <scope>compile</scope>
-    </dependency>
-
-    <!-- Lombok -->
-    <dependency>
-      <groupId>org.projectlombok</groupId>
-      <artifactId>lombok</artifactId>
-      <version>1.18.32</version>
-      <scope>provided</scope>
-    </dependency>
-
-    <!-- Core -->
-    <dependency>
-      <groupId>com.cavetale.core</groupId>
-      <artifactId>core</artifactId>
-      <version>0.1-SNAPSHOT</version>
-      <scope>provided</scope>
-    </dependency>
-
-  </dependencies>
   <build>
-    <finalName>${project.name}</finalName>
     <plugins>
-
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.2</version>
-        <configuration>
-          <source>21</source>
-          <target>21</target>
-          <showDeprecation>true</showDeprecation>
-          <showWarnings>true</showWarnings>
-          <compilerArgs>
-            <arg>-Xlint:unchecked</arg>
-          </compilerArgs>
-        </configuration>
-      </plugin>
 
       <!-- Shade -->
       <plugin>
@@ -113,4 +50,38 @@
 
     </plugins>
   </build>
+
+  <dependencies>
+
+    <!-- Paper API -->
+    <dependency>
+      <groupId>io.papermc.paper</groupId>
+      <artifactId>paper-api</artifactId>
+      <scope>provided</scope>
+    </dependency>
+
+    <!-- Connect-Core -->
+    <dependency>
+      <groupId>com.winthier.connect</groupId>
+      <artifactId>connect-core</artifactId>
+      <version>0.1-SNAPSHOT</version>
+      <scope>compile</scope>
+    </dependency>
+
+    <!-- Lombok -->
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <scope>provided</scope>
+    </dependency>
+
+    <!-- Core -->
+    <dependency>
+      <groupId>com.cavetale.core</groupId>
+      <artifactId>core</artifactId>
+      <version>0.1-SNAPSHOT</version>
+      <scope>provided</scope>
+    </dependency>
+
+  </dependencies>
 </project>

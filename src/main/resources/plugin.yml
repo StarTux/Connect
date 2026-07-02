@@ -3,7 +3,7 @@ name: Connect
 description: Connect Bukkit servers
 
 version: 0.1
-api-version: '1.21.11'
+api-version: '26.1.2'
 
 author: StarTux
 website: https://cavetale.com
